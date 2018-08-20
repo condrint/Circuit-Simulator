@@ -52,7 +52,7 @@ class Wire(Component):
         Component.__init__(self, 'Wire', node1, node2)
     
     def __repr__(self):
-        print('Wire' + id(self))
+        return 'Wire' + str(id(self))
     
 class Resistor(Component):
     def __init__(self, resistance, node1, node2):
@@ -60,7 +60,7 @@ class Resistor(Component):
         self.resistance = resistance
     
     def __repr__(self):
-        print('Resistor{0} with value {1} ohms'.format(str(id(self)), self.getResistance()))
+        return 'Resistor{0} with value {1} ohms'.format(id(self), self.getResistance())
 
     def getResistance(self):
         return self.resistance
@@ -71,8 +71,8 @@ class PowerSupply(Component):
         self.volts = volts
     
     def __repr__(self):
-        print('Powersupply{0} with value {1} volts'.format(id(self), self.getVoltage()))
-    
+        return 'Powersupply{0} with value {1} volts'.format(id(self), self.getVoltage())
+        
     def getVoltage(self):
         return self.volts
 
@@ -90,16 +90,18 @@ class Circuit():
         self.edges = savedGraph
     
     def __repr__(self):
-        compiledEdges = self.compileEdges()
+        compiledEdges = self._compileEdges()
         displayList = [(key, value) for key, value in compiledEdges.items()]
         displayString = ''
         for node in sorted(displayList, key=lambda edge: edge[0].getID()):
             displayString += '{0}:'.format(node[0])
+            #print(node)
             for edge in sorted(node[1], key=lambda neighbor: neighbor[0]):
-                displayString += ' (Node: {0}, Type: {1}),'.format(edge[0], edge[1])
+
+                displayString += ' (Node: {0}, Type: {1}),'.format(edge[0], edge[1].getType())
             displayString = displayString[0:len(displayString) - 1:1] #cut off extra comma
             displayString += '\n'
-        return displayString
+        return str(displayString)
 
     def addEdge(self, *args):
         for component in args:
@@ -119,14 +121,23 @@ class Circuit():
             print('Edge does not exist')
             return False
 
-    def compileEdges(self):
+    def _compileEdges(self):
         nodes = {}
+        #add both edges going both ways
         for edge in self.edges:
             node = edge.getFirstNode()
             if node and node in nodes:
-                nodes[node].append([edge.getSecondNode(), edge.getType()])
+                nodes[node].append([edge.getSecondNode(), edge])
             else:
-                nodes[node] = [[edge.getSecondNode(), edge.getType()]]
+                nodes[node] = [[edge.getSecondNode(), edge]]
+
+        for edge in self.edges:
+            node = edge.getSecondNode()
+            if node and node in nodes:
+                nodes[node].append([edge.getFirstNode(), edge])
+            else:
+                nodes[node] = [[edge.getFirstNode(), edge]]
+
         return nodes
 
     def getVoltages(self):
