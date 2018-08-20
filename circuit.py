@@ -1,10 +1,31 @@
 class Node():
-    def __init__(self, x, y):
+    def __init__(self, x, y, idOfNode):
         self.x = x
         self.y = y
+        self.id = idOfNode
+        self._id = id(self)
     
-    def NodeID(self):
-        return id(self)
+    def __repr__(self):
+        return str(self.id)
+
+    def __hash__(self):
+        return hash(self.getUniqueID())
+
+    def __eq__(self, other):
+        return self.getUniqueID == other.getUniqueID
+    
+    def __lt__(self, other):
+        return self.id < other.id
+    
+    def __gt__(self, other):
+        return self.id > other.id
+
+    def getUniqueID(self):
+        return self._id
+
+    def getID(self):
+        return self.id
+
 
 class Component():
     """
@@ -69,7 +90,16 @@ class Circuit():
         self.edges = savedGraph
     
     def __repr__(self):
-        return self.compileEdges()
+        compiledEdges = self.compileEdges()
+        displayList = [(key, value) for key, value in compiledEdges.items()]
+        displayString = ''
+        for node in sorted(displayList, key=lambda edge: edge[0].getID()):
+            displayString += '{0}:'.format(node[0])
+            for edge in sorted(node[1], key=lambda neighbor: neighbor[0]):
+                displayString += ' (Node: {0}, Type: {1}),'.format(edge[0], edge[1])
+            displayString = displayString[0:len(displayString) - 1:1] #cut off extra comma
+            displayString += '\n'
+        return displayString
 
     def addEdge(self, *args):
         for component in args:
@@ -97,7 +127,6 @@ class Circuit():
                 nodes[node].append([edge.getSecondNode(), edge.getType()])
             else:
                 nodes[node] = [[edge.getSecondNode(), edge.getType()]]
-
         return nodes
 
     def getVoltages(self):
@@ -107,12 +136,12 @@ class Circuit():
         pass
 
 
-node0 = Node(0,0)
-node1 = Node(0,0)
-node2 = Node(0,0)
-node3 = Node(0,0)
-node4 = Node(0,0)
-node5 = Node(0,0)
+node0 = Node(0,0,0)
+node1 = Node(0,0,1)
+node2 = Node(0,0,2)
+node3 = Node(0,0,3)
+node4 = Node(0,0,4)
+node5 = Node(0,0,5)
 edge0 = PowerSupply(5, node5, node0)
 edge1 = Wire(node0, node1)
 edge2 = Wire(node1, node2)
@@ -123,3 +152,4 @@ edge6 = Wire(node4, node5)
 
 testCircuit = Circuit()
 testCircuit.addEdge(edge0, edge1, edge2, edge3, edge4, edge5)
+print(testCircuit)
