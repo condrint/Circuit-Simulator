@@ -66,8 +66,8 @@ class Resistor(Component):
         return self.resistance
 
 class PowerSupply(Component):
-    def __init__(self, volts, node1, node2):
-        Component.__init__(self, 'PowerSupply', node1, node2)
+    def __init__(self, volts, positive, negative):
+        Component.__init__(self, 'PowerSupply', positive, negative)
         self.volts = volts
     
     def __repr__(self):
@@ -98,7 +98,7 @@ class Circuit():
             #print(node)
             for edge in sorted(node[1], key=lambda neighbor: neighbor[0]):
 
-                displayString += ' (Node: {0}, Type: {1}),'.format(edge[0], edge[1].getType())
+                displayString += ' (Node: {0}, Connected by: {1}),'.format(edge[0], str(edge[1]))
             displayString = displayString[0:len(displayString) - 1:1] #cut off extra comma
             displayString += '\n'
         return str(displayString)
@@ -124,6 +124,7 @@ class Circuit():
     def _compileEdges(self):
         nodes = {}
         #add both edges going both ways
+        
         for edge in self.edges:
             node = edge.getFirstNode()
             if node and node in nodes:
@@ -137,7 +138,6 @@ class Circuit():
                 nodes[node].append([edge.getFirstNode(), edge])
             else:
                 nodes[node] = [[edge.getFirstNode(), edge]]
-
         return nodes
 
     def getVoltages(self):
@@ -162,5 +162,5 @@ edge5 = Wire(node3, node4)
 edge6 = Wire(node4, node5)
 
 testCircuit = Circuit()
-testCircuit.addEdge(edge0, edge1, edge2, edge3, edge4, edge5)
+testCircuit.addEdge(edge0, edge1, edge2, edge3, edge4, edge5, edge6)
 print(testCircuit)
