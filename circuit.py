@@ -6,7 +6,7 @@ class Node():
         self._id = id(self)
     
     def __repr__(self):
-        return str(self.id)
+        return 'Node' + str(self.id)
 
     def __hash__(self):
         return hash(self.getUniqueID())
@@ -76,6 +76,9 @@ class PowerSupply(Component):
     def getVoltage(self):
         return self.volts
 
+    def getPolarity(self, node):
+        return '+' if node is self.node1 else '-'
+
 class Circuit():
     """
     stores edges of wires/components
@@ -95,18 +98,19 @@ class Circuit():
         displayString = ''
         for node in sorted(displayList, key=lambda edge: edge[0].getID()):
             displayString += '{0}:'.format(node[0])
-            #print(node)
-            for edge in sorted(node[1], key=lambda neighbor: neighbor[0]):
 
+            for edge in sorted(node[1], key=lambda neighbor: neighbor[0]):
                 displayString += ' (Node: {0}, Connected by: {1}),'.format(edge[0], str(edge[1]))
             displayString = displayString[0:len(displayString) - 1:1] #cut off extra comma
             displayString += '\n'
         return str(displayString)
 
     def addEdge(self, *args):
+        tempGraph = self.edges
         for component in args:
             if not issubclass(type(component), Component):
                 print('Component {0} is not an instance of component'.format(component))
+                self.edges = tempGraph
                 return
             self.edges.append(component)
             print('Added edge {0}'.format(len(self.edges) - 1))
@@ -124,7 +128,6 @@ class Circuit():
     def _compileEdges(self):
         nodes = {}
         #add both edges going both ways
-        
         for edge in self.edges:
             node = edge.getFirstNode()
             if node and node in nodes:
@@ -140,7 +143,17 @@ class Circuit():
                 nodes[node] = [[edge.getFirstNode(), edge]]
         return nodes
 
+    def simplifyEdges(self):
+        #remove wires from graph and combine nodes
+
+        #but need the data structure to maintain a way to track what nodes were simplified and where in order to give those nodes the same voltage the 'parent' node got after analysis
+        #will return two data structures, one containing the simiplified graph, the other containing the same keys, but the values will be the nodes that were combined into each key (node)
+        pass
+
+
     def getVoltages(self):
+        #nodal analysis
+        #simplifiedNodes = self.simplifyEdges()
         pass
     
     def getCurrents(self):
