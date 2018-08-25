@@ -1,3 +1,4 @@
+
 class Node():
     def __init__(self, x, y, idOfNode):
         self.x = x
@@ -216,26 +217,28 @@ class Circuit():
     def getVoltages(self):
         #nodal analysis
         simplifiedNodes, unsimplifiedNodeRelationships = self._simplifyEdges()
+        volttages = analyzeNodes(simplifiedNodes)
         
     
     def getCurrents(self):
         pass
 
+if __name__ == '__main__':
+    from nodal_analysis import *
+    node0 = Node(0,0,0)
+    node1 = Node(0,0,1)
+    node2 = Node(0,0,2)
+    node3 = Node(0,0,3)
+    node4 = Node(0,0,4)
+    node5 = Node(0,0,5)
+    edge0 = PowerSupply(5, node5, node0)
+    edge1 = Wire(node0, node1)
+    edge2 = Wire(node1, node2)
+    edge3 = Resistor(10000, node1, node4)
+    edge4 = Resistor(20000, node2, node3)
+    edge5 = Wire(node3, node4)
+    edge6 = Wire(node4, node5)
 
-node0 = Node(0,0,0)
-node1 = Node(0,0,1)
-node2 = Node(0,0,2)
-node3 = Node(0,0,3)
-node4 = Node(0,0,4)
-node5 = Node(0,0,5)
-edge0 = PowerSupply(5, node5, node0)
-edge1 = Wire(node0, node1)
-edge2 = Wire(node1, node2)
-edge3 = Resistor(10000, node1, node4)
-edge4 = Resistor(20000, node2, node3)
-edge5 = Wire(node3, node4)
-edge6 = Wire(node4, node5)
-
-testCircuit = Circuit()
-testCircuit.addEdge(edge0, edge1, edge2, edge3, edge4, edge5, edge6)
-print(testCircuit.getVoltages())
+    testCircuit = Circuit()
+    testCircuit.addEdge(edge0, edge1, edge2, edge3, edge4, edge5, edge6)
+    print(testCircuit.getVoltages())
