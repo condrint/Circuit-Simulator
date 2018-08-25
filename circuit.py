@@ -144,17 +144,48 @@ class Circuit():
         return nodes
 
     def simplifyEdges(self):
-        #remove wires from graph and combine nodes
+        graph = self._compileEdges()
+        #search through neighbors, if wire found, remove that edge, and add that guys neighbors
+        #repeat until no wires remain
+        graphKeys = list(graph.keys())
+        for node in graphKeys:
+            #make sure node was not removed in prior operation
+            if node not in graph.keys():
+                continue
+            wiresRemain = True
+            simplifiedNeighbors = []
+            newNeighbors = graph[node]
+            visited = set()
+            visited.add(node)
+            while wiresRemain:
+                currentNeighbors = newNeighbors
+                newNeighbors = []
+                for edge in currentNeighbors:
+                    if isinstance(edge[1], Wire):
+                        try:
+                            #do not add edges in visited to avoid infinite loop
+                            newNeighbors += [edge for edge in graph[edge[0]] if edge[0] not in visited]
+                            visited.add(edge[0])
+                            graph.pop(edge[0], None)
+                                
+                        except KeyError:
+                            print('edge {0} of node {1} not found in graph'.format(edge, node))
+                            return
+                    else:
+                        #if component is not a wire we cannot simplify so readd to graph
+                        simplifiedNeighbors.append(edge)
+                wiresRemain = len(newNeighbors) > 0
+                
+            graph[node] = simplifiedNeighbors
+        
+        return graph
 
-        #but need the data structure to maintain a way to track what nodes were simplified and where in order to give those nodes the same voltage the 'parent' node got after analysis
-        #will return two data structures, one containing the simiplified graph, the other containing the same keys, but the values will be the nodes that were combined into each key (node)
-        pass
 
 
     def getVoltages(self):
         #nodal analysis
-        #simplifiedNodes = self.simplifyEdges()
-        pass
+        simplifiedNodes = self.simplifyEdges()
+        
     
     def getCurrents(self):
         pass
@@ -176,4 +207,4 @@ edge6 = Wire(node4, node5)
 
 testCircuit = Circuit()
 testCircuit.addEdge(edge0, edge1, edge2, edge3, edge4, edge5, edge6)
-print(testCircuit)
+print(testCircuit.simplifyEdges())
