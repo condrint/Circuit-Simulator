@@ -12,7 +12,7 @@ class Node():
         return hash(self.getUniqueID())
 
     def __eq__(self, other):
-        return self.getUniqueID == other.getUniqueID
+        return self is other
     
     def __lt__(self, other):
         return self.id < other.id
@@ -126,6 +126,7 @@ class Circuit():
             return False
 
     def _compileEdges(self):
+        #convert list of edges into dictionary of nodes for quicker navigation
         nodes = {}
         #add both edges going both ways
         for edge in self.edges:
@@ -143,20 +144,30 @@ class Circuit():
                 nodes[node] = [[edge.getFirstNode(), edge]]
         return nodes
 
-    def simplifyEdges(self):
+    def _simplifyEdges(self):
+        """
+        search through neighbors, if wire found, remove that edge, and add that guys neighbors
+        repeat until no wires remain
+        returns tuple (dict, dict) where the first dict is the simplified graph and the second the nodes that were simplified
+        """
         graph = self._compileEdges()
-        #search through neighbors, if wire found, remove that edge, and add that guys neighbors
-        #repeat until no wires remain
+        unsimplifiedNodeRelationships = {}
+
+        #we cant modify dictionary keys during iteration, so take a snapshot of it prior to algorithm
         graphKeys = list(graph.keys())
+
         for node in graphKeys:
             #make sure node was not removed in prior operation
             if node not in graph.keys():
                 continue
+
+            #set up variables for traversal
             wiresRemain = True
             simplifiedNeighbors = []
             newNeighbors = graph[node]
             visited = set()
             visited.add(node)
+
             while wiresRemain:
                 currentNeighbors = newNeighbors
                 newNeighbors = []
@@ -166,25 +177,45 @@ class Circuit():
                             #do not add edges in visited to avoid infinite loop
                             newNeighbors += [edge for edge in graph[edge[0]] if edge[0] not in visited]
                             visited.add(edge[0])
-                            graph.pop(edge[0], None)
+
+                            #remove node that can be simplified
+                            removedWasNode = graph.pop(edge[0], None) is not None
+                            removedNode = edge[0]
+
+                            #search through entire graph for removed node and update
+                            #it with the node it was simplified "into"
+                            #slow but necessary to fix otherwise dictionary values will reference removed keys
+                            for key in graph.keys():
+                                for neighbor in graph[key]:
+                                    if neighbor[0] == removedNode:
+                                        neighbor[0] = node
+
+                            if removedWasNode:
+                                if node in unsimplifiedNodeRelationships:
+                                    unsimplifiedNodeRelationships[node].append(removedNode)
+                                else:
+                                    unsimplifiedNodeRelationships[node] = [removedNode]
+                            else:
+                                print('Error when simplifying {0} which is a neighbor of {1}'.format(edge[0], node))
+                                return (None, None)
                                 
                         except KeyError:
-                            print('edge {0} of node {1} not found in graph'.format(edge, node))
-                            return
+                            print('Edge {0} of node {1} not found in graph'.format(edge, node))
+                            return (None, None)
                     else:
-                        #if component is not a wire we cannot simplify so readd to graph
+                        #if component is not a wire we cannot simplify so re-add to graph
                         simplifiedNeighbors.append(edge)
                 wiresRemain = len(newNeighbors) > 0
                 
             graph[node] = simplifiedNeighbors
         
-        return graph
+        return (graph, unsimplifiedNodeRelationships)
 
 
 
     def getVoltages(self):
         #nodal analysis
-        simplifiedNodes = self.simplifyEdges()
+        simplifiedNodes, unsimplifiedNodeRelationships = self._simplifyEdges()
         
     
     def getCurrents(self):
@@ -207,4 +238,4 @@ edge6 = Wire(node4, node5)
 
 testCircuit = Circuit()
 testCircuit.addEdge(edge0, edge1, edge2, edge3, edge4, edge5, edge6)
-print(testCircuit.simplifyEdges())
+print(testCircuit.getVoltages())
