@@ -22,9 +22,11 @@ class Node():
         return self.id > other.id
 
     def getUniqueID(self):
+        #the unique ID is used for simulating the circuit and solving systems of equations
         return self._id
 
     def getID(self):
+        #ideally, this ID would be unique as well, but shouldnt break anything if it is not
         return self.id
 
 
@@ -45,15 +47,27 @@ class Component():
     def getSecondNode(self):
         return self.node2
 
+    def getOtherNode(self, node):
+        if node is self.node1:
+            return self.node2
+        else:
+            return self.node1
+
     def getType(self):
         return self.type
 
+    def getNodalAnalysisBehavior(self):
+        raise NotImplementedError('Nodal analysis behavior not implemented for {0}'.format(self.type))
+        
 class Wire(Component):
     def __init__(self, node1, node2):
         Component.__init__(self, 'Wire', node1, node2)
     
     def __repr__(self):
         return 'Wire' + str(id(self))
+
+    def getNodalAnalysisBehavior(self):
+        raise NotImplementedError('Wire should not be in nodal analysis')
     
 class Resistor(Component):
     def __init__(self, resistance, node1, node2):
@@ -65,6 +79,9 @@ class Resistor(Component):
 
     def getResistance(self):
         return self.resistance
+    
+    def getNodalAnalysisBehavior(self):
+        return 1/self.resistance 
 
 class PowerSupply(Component):
     def __init__(self, volts, positive, negative):
@@ -78,7 +95,19 @@ class PowerSupply(Component):
         return self.volts
 
     def getPolarity(self, node):
-        return '+' if node is self.node1 else '-'
+        if node is self.node1:
+            return '+'
+        elif node is self.node2:
+            return '-'
+        else:
+            return None
+    
+    def getNodalAnalysisBehavior(self, nodes):
+        for node in nodes:
+            polarity = self.getPolarity(node)
+            if polarity is not None:
+                return (polarity, self.volts)
+        raise KeyError ('{0} are not connected to {1}'.format(nodes, self))
 
 class Circuit():
     """
@@ -180,18 +209,18 @@ class Circuit():
                             visited.add(edge[0])
 
                             #remove node that can be simplified
-                            removedWasNode = graph.pop(edge[0], None) is not None
+                            nodeWasRemoved = graph.pop(edge[0], None) is not None
                             removedNode = edge[0]
 
                             #search through entire graph for removed node and update
                             #it with the node it was simplified "into"
-                            #slow but necessary to fix otherwise dictionary values will reference removed keys
+                            #slow but necessary to fix, otherwise dictionary values will reference removed keys
                             for key in graph.keys():
                                 for neighbor in graph[key]:
                                     if neighbor[0] == removedNode:
                                         neighbor[0] = node
 
-                            if removedWasNode:
+                            if nodeWasRemoved:
                                 if node in unsimplifiedNodeRelationships:
                                     unsimplifiedNodeRelationships[node].append(removedNode)
                                 else:
@@ -217,13 +246,14 @@ class Circuit():
     def getVoltages(self):
         #nodal analysis
         simplifiedNodes, unsimplifiedNodeRelationships = self._simplifyEdges()
-        volttages = analyzeNodes(simplifiedNodes)
+        #voltages = analyzeNodes(simplifiedNodes, unsimplifiedNodeRelationships)
         
     
     def getCurrents(self):
         pass
 
 if __name__ == '__main__':
+    #importing here avoids circular dependency loops
     from nodal_analysis import *
     node0 = Node(0,0,0)
     node1 = Node(0,0,1)
