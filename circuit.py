@@ -50,8 +50,10 @@ class Component():
     def getOtherNode(self, node):
         if node is self.node1:
             return self.node2
-        else:
+        elif node is self.node2:
             return self.node1
+        else:
+            return None
 
     def getType(self):
         return self.type
@@ -96,9 +98,9 @@ class PowerSupply(Component):
 
     def getPolarity(self, node):
         if node is self.node1:
-            return '+'
+            return self.volts
         elif node is self.node2:
-            return '-'
+            return 0
         else:
             return None
     
@@ -106,7 +108,7 @@ class PowerSupply(Component):
         for node in nodes:
             polarity = self.getPolarity(node)
             if polarity is not None:
-                return (polarity, self.volts)
+                return polarity
         raise KeyError ('{0} are not connected to {1}'.format(nodes, self))
 
 class Circuit():
@@ -128,7 +130,6 @@ class Circuit():
         displayString = ''
         for node in sorted(displayList, key=lambda edge: edge[0].getID()):
             displayString += '{0}:'.format(node[0])
-
             for edge in sorted(node[1], key=lambda neighbor: neighbor[0]):
                 displayString += ' (Node: {0}, Connected by: {1}),'.format(edge[0], str(edge[1]))
             displayString = displayString[0:len(displayString) - 1:1] #cut off extra comma
@@ -246,7 +247,7 @@ class Circuit():
     def getVoltages(self):
         #nodal analysis
         simplifiedNodes, unsimplifiedNodeRelationships = self._simplifyEdges()
-        #voltages = analyzeNodes(simplifiedNodes, unsimplifiedNodeRelationships)
+        voltagges = analyzeNodes(simplifiedNodes, unsimplifiedNodeRelationships)
         
     
     def getCurrents(self):
