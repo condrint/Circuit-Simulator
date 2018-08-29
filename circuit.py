@@ -240,6 +240,29 @@ class Circuit():
                 
             graph[node] = simplifiedNeighbors
         
+        #simplify power supplies
+        #if we find a power supply in a nodes neighbors, replace all neighbors with voltage
+        for node in graph:
+            voltage = None
+            for value in graph[node]:
+                component = value[1]
+                if isinstance(component, PowerSupply):
+                    #powersupply will be connected to either current node, or one of it's neighbor nodes that it was simplified with
+                    nodesToCheckVoltage = unsimplifiedNodeRelationships[node] + [node]
+                    while not isinstance(component.getPolarity(nodesToCheckVoltage[-1]), int):
+                        nodesToCheckVoltage.pop()
+                    newVoltage = component.getPolarity(nodesToCheckVoltage[-1])
+                    if newVoltage == 0:
+                        graph[node] = newVoltage
+                        break
+                    elif not voltage:
+                        voltage = newVoltage
+                    elif newVoltage > voltage:
+                        voltage = newVoltage
+            if voltage:
+                graph[node] = voltage
+            
+                        
         return (graph, unsimplifiedNodeRelationships)
 
 
