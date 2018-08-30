@@ -248,7 +248,7 @@ class Circuit():
                 component = value[1]
                 if isinstance(component, PowerSupply):
                     #powersupply will be connected to either current node, or one of it's neighbor nodes that it was simplified with
-                    nodesToCheckVoltage = unsimplifiedNodeRelationships[node] + [node] if node in unsimplifiedNodeRelationships[node] else [node]
+                    nodesToCheckVoltage = unsimplifiedNodeRelationships[node] + [node] if node in unsimplifiedNodeRelationships else [node]
                     while not isinstance(component.getPolarity(nodesToCheckVoltage[-1]), int):
                         nodesToCheckVoltage.pop()
                     newVoltage = component.getPolarity(nodesToCheckVoltage[-1])
