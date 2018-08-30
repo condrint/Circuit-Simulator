@@ -1,7 +1,7 @@
 import circuit
 from numpy import *
 from sympy import *
-
+#test
 def analyzeNodes(graph, relations):
     """
     utilizes nodal analysis to find the voltages at each node
