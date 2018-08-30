@@ -1,6 +1,8 @@
 import circuit
 from numpy import *
 from sympy import *
+from functools import reduce
+
 #test
 def analyzeNodes(graph, relations):
     """
@@ -27,8 +29,7 @@ def analyzeNodes(graph, relations):
                 matrix[matrixPosition][matrixPosition] = 1
                 matrix[matrixPosition][-1] = graph[node]
                 continue
-        for value in graph[node]:  
-                #start here
+        for value in graph[node]: 
                 neighboringNode, component = value[0], value[1]
                 componentType = component.getType()
                 if componentType == 'Resistor':
@@ -40,8 +41,19 @@ def analyzeNodes(graph, relations):
                     newRow[posIndex].append(coefficient)
                     newRow[negIndex].append(-1*coefficient)
         #combine coefficients
-        simplifiedNewRow = []
+        simplifiedNewRow = [reduce((lambda x, y: x + y), coefs) for coefs in newRow]
 
+        #add to matrix
+        matrix[matrixPosition][0:len(matrix[matrixPosition])-1:1] = simplifiedNewRow
 
+    #multiply each row in matrix by sympy variables
     print(matrix)
+    nodeVariables += [1]
+    for row in matrix: 
+                #start here
+        for i, column in enumerate(row):
+            print(i, column)
+            print(matrix)
+            row[i] = column * nodeVariables[i]
+    
     return 0
