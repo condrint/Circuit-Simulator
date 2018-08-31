@@ -308,7 +308,6 @@ class Circuit():
 
     def nodalAnalysis(self):
         voltages = self._getVoltages()
-        print(voltages)
         currents = self._getCurrents(voltages)
 
 if __name__ == '__main__':
@@ -321,9 +320,9 @@ if __name__ == '__main__':
     node4 = Node(0,0,4)
     node5 = Node(0,0,5)
     edge0 = PowerSupply(10, node0, node5)
-    edge1 = Wire( node0, node1)
+    edge1 = Resistor(5000, node0, node1)
     edge2 = Wire(node1, node2)
-    edge3 = Wire(node1, node4)
+    edge3 = Resistor(10000, node1, node4)
     edge4 = Resistor(10000, node2, node3)
     edge5 = Wire(node3, node4)
     edge6 = Wire(node4, node5)
