@@ -1,6 +1,5 @@
 import circuit
 from numpy import *
-from sympy import *
 from functools import reduce
 
 #test
@@ -13,16 +12,12 @@ def analyzeNodes(graph, relations):
     nodes = sorted(list(graph))
 
     #nodeVariables will contain each nodes respective sympy variable name
-    nodeVariables = []
-    for node in nodes:
-        nodeID = node.getUniqueID()
-        newVariable = symbols(str(nodeID))
-        nodeVariables.append([newVariable, node])
+ 
     print(graph)
     print(nodes)
-    matrix = [[0 for _ in range(len(nodeVariables) + 1)] for _ in range(len(nodeVariables))]
+    matrix = [[0 for _ in range(len(nodes) + 1)] for _ in range(len(nodes))]
     for matrixPosition, node in enumerate(nodes):
-        newRow = [[] for _ in range(len(nodeVariables))]
+        newRow = [[] for _ in range(len(nodes))]
         #check if node is already connected to a powersupply, in that case it would be an integer
         if isinstance(graph[node], int):
                 #set node value to voltage present at node from connected power supplies
@@ -46,14 +41,10 @@ def analyzeNodes(graph, relations):
         #add to matrix
         matrix[matrixPosition][0:len(matrix[matrixPosition])-1:1] = simplifiedNewRow
 
-    #multiply each row in matrix by sympy variables
-    print(matrix)
-    nodeVariables += [1]
-    for row in matrix: 
-                #start here
-        for i, column in enumerate(row):
-            print(i, column)
-            print(matrix)
-            row[i] = column * nodeVariables[i]
-    
-    return 0
+    #solve resulting matrix by seperating matrix in A, B where Ax=B and result will be x, our nodal voltages
+    numpyMatrixA = asarray([row[0:len(row)-1:1] for row in matrix])
+    numpyMatrixB = asarray([row[-1] for row in matrix])
+    result = linalg.solve(numpyMatrixA, numpyMatrixB)
+    nodalVoltages = list(zip(nodes, [float(x) for x in result]))
+    print(nodalVoltages)
+    return nodalVoltages

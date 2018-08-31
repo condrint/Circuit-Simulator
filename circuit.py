@@ -184,7 +184,7 @@ class Circuit():
         graph = self._compileEdges()
         unsimplifiedNodeRelationships = {}
 
-        #we cant modify dictionary keys during iteration, so take a snapshot of it prior to algorithm
+        #we cant modify dictionary keys during iteration, so take a snapshot of them prior to algorithm
         graphKeys = list(graph.keys())
 
         for node in graphKeys:
