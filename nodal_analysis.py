@@ -10,11 +10,7 @@ def analyzeNodes(graph, relations):
     """
     #create an index of nodes, where the index serves as the subscript denoting different nodal voltages
     nodes = sorted(list(graph))
-
-    #nodeVariables will contain each nodes respective sympy variable name
  
-    print(graph)
-    print(nodes)
     matrix = [[0 for _ in range(len(nodes) + 1)] for _ in range(len(nodes))]
     for matrixPosition, node in enumerate(nodes):
         newRow = [[] for _ in range(len(nodes))]
@@ -46,5 +42,4 @@ def analyzeNodes(graph, relations):
     numpyMatrixB = asarray([row[-1] for row in matrix])
     result = linalg.solve(numpyMatrixA, numpyMatrixB)
     nodalVoltages = list(zip(nodes, [float(x) for x in result]))
-    print(nodalVoltages)
     return nodalVoltages

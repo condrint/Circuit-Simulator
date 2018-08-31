@@ -267,14 +267,49 @@ class Circuit():
 
 
 
-    def getVoltages(self):
+    def _getVoltages(self):
         #nodal analysis
         simplifiedNodes, unsimplifiedNodeRelationships = self._simplifyEdges()
-        voltagges = analyzeNodes(simplifiedNodes, unsimplifiedNodeRelationships)
+        voltages = analyzeNodes(simplifiedNodes, unsimplifiedNodeRelationships)
+        for node in unsimplifiedNodeRelationships:
+            for connectedNode in unsimplifiedNodeRelationships[node]:
+                #find parent node's voltage and assign connectedNode that voltage
+                voltage = [x[1] for x in voltages if x[0] == node]
+                if not voltage:
+                    raise KeyError('node not found in voltages')
+                voltages.append((connectedNode, voltage[0]))
+
+        #convert to a dictionary for faster lookups when assigning currents
+        #a list was used earlier (instead of a dictionary) in nodal analysis because the order was important 
+        #for the part of the algorithm that used linear algebra
+        voltages = {x[0]:x[1] for x in voltages}
+        return voltages
         
     
-    def getCurrents(self):
-        pass
+    def _getCurrents(self, voltages):
+        #iterate through edges, and use ohm's law and provided voltages to solve for currents
+        #only assign positive current with abs() (direction is arbitrary, only magnitude matters for this GUI)
+        currents = []
+        for component in self.edges:
+            #calculate currents over nodes with differences in voltages first
+            if component.getType() == 'Resistor':
+                node1voltage = voltages[component.getFirstNode()]
+                node2voltage = voltages[component.getSecondNode()]
+                current = abs((node1voltage - node2voltage)/component.getResistance())
+                currents.append(current)
+            else:
+                currents.append(0)
+        print(self.edges)
+        print(currents)
+        #add up currents from lowest voltage upwards
+
+
+        
+
+    def nodalAnalysis(self):
+        voltages = self._getVoltages()
+        print(voltages)
+        currents = self._getCurrents(voltages)
 
 if __name__ == '__main__':
     #importing here avoids circular dependency loops
@@ -285,14 +320,14 @@ if __name__ == '__main__':
     node3 = Node(0,0,3)
     node4 = Node(0,0,4)
     node5 = Node(0,0,5)
-    edge0 = PowerSupply(5, node0, node5)
-    edge1 = Resistor(5000, node0, node1)
+    edge0 = PowerSupply(10, node0, node5)
+    edge1 = Wire( node0, node1)
     edge2 = Wire(node1, node2)
-    edge3 = Resistor(10000, node1, node4)
-    edge4 = Resistor(20000, node2, node3)
+    edge3 = Wire(node1, node4)
+    edge4 = Resistor(10000, node2, node3)
     edge5 = Wire(node3, node4)
     edge6 = Wire(node4, node5)
 
     testCircuit = Circuit()
     testCircuit.addEdge(edge0, edge1, edge2, edge3, edge4, edge5, edge6)
-    print(testCircuit.getVoltages())
+    print(testCircuit.nodalAnalysis())
