@@ -301,10 +301,8 @@ class Circuit():
                 currents.append(current)
             else:
                 currents.append(0)
-        print(self.edges)
         
         #add current at resistors to any wires ahead
-        #still thinking about this
         indexesOfWiresWithNoCurrent = []
         for i, current in enumerate(currents):
             if current == 0 and self.edges[i].getType() == 'Wire':
@@ -321,42 +319,50 @@ class Circuit():
             #look at the nodes neighbors and add up the currents
             for neighbor in graph[node1]:
                 neighborNode, neighborComponent = neighbor[0], neighbor[1]
+                if neighborNode == node2:
+                    continue
                 indexOfNeighborComponent = self.edges.index(neighborComponent)
                 currentThroughNeighbor = currents[indexOfNeighborComponent]
-                negative = True if voltages[node1] < voltages[neighborNode] else False
+
+                #assign an arbitrary direction for calculations
+                negative = True if voltages[node1] > voltages[neighborNode] else False
                 if negative:
                     currentThroughNeighbor *= -1
+                
                 currentsThroughNode.append(currentThroughNeighbor)
-            print(currentsThroughNode)
-            currentOfWire = abs(reduce((lambda x, y: x + y), currentsThroughNode))
-
+            
+            currentOfWire = abs(reduce((lambda x, y: x + y), currentsThroughNode)) if currentsThroughNode else 0
+            currentsThroughNode = []
             for neighbor in graph[node2]:
                 neighborNode, neighborComponent = neighbor[0], neighbor[1]
+                if neighborNode == node1:
+                    continue
                 indexOfNeighborComponent = self.edges.index(neighborComponent)
                 currentThroughNeighbor = currents[indexOfNeighborComponent]
-                negative = True if voltages[node1] < voltages[neighborNode] else False
+                #assign an arbitrary direction for calculations
+                negative = True if voltages[node2] > voltages[neighborNode] else False
                 if negative:
                     currentThroughNeighbor *= -1
+
                 currentsThroughNode.append(currentThroughNeighbor)
-            print(currentsThroughNode)
-            currentOfWire2 = abs(reduce((lambda x, y: x + y), currentsThroughNode))
-            #as long as we maintain direction when calculating currents, we can store the currents as their magnitude to avoid unnessecary data structures
-            print(currentOfWire, currentOfWire2)
-            currents[index] = currentOfWire or currentOfWire2 or 0
-        print(currents)
             
+            currentOfWire2 = abs(reduce((lambda x, y: x + y), currentsThroughNode)) if currentsThroughNode else 0
 
+            #as long as we maintain direction when calculating currents, we can store the currents as their magnitude to avoid unnessecary data structures
+            currents[index] = currentOfWire 
 
+        #convert currents to dictionary to maintain a homogeneous data structure setup with voltages
+        newCurrents = {component:currents[i] for i, component in enumerate(self.edges)}
+        return newCurrents
 
-
-        return currents 
 
         
 
     def nodalAnalysis(self):
         voltages = self._getVoltages()
         currents = self._getCurrents(voltages)
-
+        print(voltages)
+        print(currents)
 if __name__ == '__main__':
     #importing here avoids circular dependency loops
     from nodal_analysis import *
