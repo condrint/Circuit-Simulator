@@ -301,105 +301,51 @@ class Circuit():
                 currents.append(current)
             else:
                 currents.append(0)
+
+        graph = self._compileEdges()
+        #REFACTOR THIS OR FACE THE CONSEQUENCES 
+        for index in indexesOfWiresWithNoCurrent:
+            wireWithoutCurrent = self.edges[index]
+            node1, node2 = wireWithoutCurrent.getFirstNode(), wireWithoutCurrent.getSecondNode()
+            #it's arbitrary whether we pick node1 or node2 to look at to get current info (hopefully)
+            #as long as we maintain a standard for current direction
+
+            currentsThroughNode = []
+            #look at the nodes neighbors and add up the currents
+            for neighbor in graph[node1]:
+                neighborNode, neighborComponent = neighbor[0], neighbor[1]
+                if neighborNode == node2:
+                    continue
+                indexOfNeighborComponent = self.edges.index(neighborComponent)
+                currentThroughNeighbor = currents[indexOfNeighborComponent]
+
+                #assign an arbitrary direction for calculations
+                negative = True if voltages[node1] > voltages[neighborNode] else False
+                if negative:
+                    currentThroughNeighbor *= -1
+                
+                currentsThroughNode.append(currentThroughNeighbor)
+            
+            currentOfWire = abs(reduce((lambda x, y: x + y), currentsThroughNode)) if currentsThroughNode else 0
+            currentsThroughNode = []
+            for neighbor in graph[node2]:
+                neighborNode, neighborComponent = neighbor[0], neighbor[1]
+                if neighborNode == node1:
+                    continue
+                indexOfNeighborComponent = self.edges.index(neighborComponent)
+                currentThroughNeighbor = currents[indexOfNeighborComponent]
+                #assign an arbitrary direction for calculations
+                negative = True if voltages[node2] > voltages[neighborNode] else False
+                if negative:
+                    currentThroughNeighbor *= -1
+
+                currentsThroughNode.append(currentThroughNeighbor)
+            
+            currentOfWire2 = abs(reduce((lambda x, y: x + y), currentsThroughNode)) if currentsThroughNode else 0
+
+            #as long as we maintain direction when calculating currents, we can store the currents as their magnitude to avoid unnessecary data structures
+            currents[index] = currentOfWire or currentOfWire2
         
-        #add current at resistors to any wires ahead
-        indexesOfWiresWithNoCurrent = []
-        for i, current in enumerate(currents):
-            if current == 0 and self.edges[i].getType() == 'Wire':
-                indexesOfWiresWithNoCurrent.append(i)
-
-        graph = self._compileEdges()
-        #REFACTOR THIS OR FACE THE CONSEQUENCES 
-        for index in indexesOfWiresWithNoCurrent:
-            wireWithoutCurrent = self.edges[index]
-            node1, node2 = wireWithoutCurrent.getFirstNode(), wireWithoutCurrent.getSecondNode()
-            #it's arbitrary whether we pick node1 or node2 to look at to get current info (hopefully)
-            #as long as we maintain a standard for current direction
-
-            currentsThroughNode = []
-            #look at the nodes neighbors and add up the currents
-            for neighbor in graph[node1]:
-                neighborNode, neighborComponent = neighbor[0], neighbor[1]
-                if neighborNode == node2:
-                    continue
-                indexOfNeighborComponent = self.edges.index(neighborComponent)
-                currentThroughNeighbor = currents[indexOfNeighborComponent]
-
-                #assign an arbitrary direction for calculations
-                negative = True if voltages[node1] > voltages[neighborNode] else False
-                if negative:
-                    currentThroughNeighbor *= -1
-                
-                currentsThroughNode.append(currentThroughNeighbor)
-            
-            currentOfWire = abs(reduce((lambda x, y: x + y), currentsThroughNode)) if currentsThroughNode else 0
-            currentsThroughNode = []
-            for neighbor in graph[node2]:
-                neighborNode, neighborComponent = neighbor[0], neighbor[1]
-                if neighborNode == node1:
-                    continue
-                indexOfNeighborComponent = self.edges.index(neighborComponent)
-                currentThroughNeighbor = currents[indexOfNeighborComponent]
-                #assign an arbitrary direction for calculations
-                negative = True if voltages[node2] > voltages[neighborNode] else False
-                if negative:
-                    currentThroughNeighbor *= -1
-
-                currentsThroughNode.append(currentThroughNeighbor)
-            
-            currentOfWire2 = abs(reduce((lambda x, y: x + y), currentsThroughNode)) if currentsThroughNode else 0
-
-            #as long as we maintain direction when calculating currents, we can store the currents as their magnitude to avoid unnessecary data structures
-            currents[index] = currentOfWire or currentOfWire2
-        #add current at resistors to any wires ahead
-        indexesOfWiresWithNoCurrent = []
-        for i, current in enumerate(currents):
-            if current == 0 and self.edges[i].getType() == 'Wire':
-                indexesOfWiresWithNoCurrent.append(i)
-
-        graph = self._compileEdges()
-        #REFACTOR THIS OR FACE THE CONSEQUENCES 
-        for index in indexesOfWiresWithNoCurrent:
-            wireWithoutCurrent = self.edges[index]
-            node1, node2 = wireWithoutCurrent.getFirstNode(), wireWithoutCurrent.getSecondNode()
-            #it's arbitrary whether we pick node1 or node2 to look at to get current info (hopefully)
-            #as long as we maintain a standard for current direction
-
-            currentsThroughNode = []
-            #look at the nodes neighbors and add up the currents
-            for neighbor in graph[node1]:
-                neighborNode, neighborComponent = neighbor[0], neighbor[1]
-                if neighborNode == node2:
-                    continue
-                indexOfNeighborComponent = self.edges.index(neighborComponent)
-                currentThroughNeighbor = currents[indexOfNeighborComponent]
-
-                #assign an arbitrary direction for calculations
-                negative = True if voltages[node1] > voltages[neighborNode] else False
-                if negative:
-                    currentThroughNeighbor *= -1
-                
-                currentsThroughNode.append(currentThroughNeighbor)
-            
-            currentOfWire = abs(reduce((lambda x, y: x + y), currentsThroughNode)) if currentsThroughNode else 0
-            currentsThroughNode = []
-            for neighbor in graph[node2]:
-                neighborNode, neighborComponent = neighbor[0], neighbor[1]
-                if neighborNode == node1:
-                    continue
-                indexOfNeighborComponent = self.edges.index(neighborComponent)
-                currentThroughNeighbor = currents[indexOfNeighborComponent]
-                #assign an arbitrary direction for calculations
-                negative = True if voltages[node2] > voltages[neighborNode] else False
-                if negative:
-                    currentThroughNeighbor *= -1
-
-                currentsThroughNode.append(currentThroughNeighbor)
-            
-            currentOfWire2 = abs(reduce((lambda x, y: x + y), currentsThroughNode)) if currentsThroughNode else 0
-
-            #as long as we maintain direction when calculating currents, we can store the currents as their magnitude to avoid unnessecary data structures
-            currents[index] = currentOfWire or currentOfWire2
         #convert currents to dictionary to maintain a homogeneous data structure setup with voltages
         newCurrents = {component:currents[i] for i, component in enumerate(self.edges)}
         return newCurrents
