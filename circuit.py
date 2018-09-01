@@ -299,10 +299,13 @@ class Circuit():
                 currents.append(current)
             else:
                 currents.append(0)
-        print(self.edges)
-        print(currents)
-        #add up currents from lowest voltage upwards
+        
+        #add current at resistors to any wires ahead
+        #still thinking about this
 
+
+
+        return currents
 
         
 
