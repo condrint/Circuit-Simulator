@@ -1,3 +1,5 @@
+from functools import reduce
+
 
 class Node():
     def __init__(self, x, y, idOfNode):
@@ -299,13 +301,55 @@ class Circuit():
                 currents.append(current)
             else:
                 currents.append(0)
+        print(self.edges)
         
         #add current at resistors to any wires ahead
         #still thinking about this
+        indexesOfWiresWithNoCurrent = []
+        for i, current in enumerate(currents):
+            if current == 0 and self.edges[i].getType() == 'Wire':
+                indexesOfWiresWithNoCurrent.append(i)
+
+        graph = self._compileEdges()
+        for index in indexesOfWiresWithNoCurrent:
+            wireWithoutCurrent = self.edges[index]
+            node1, node2 = wireWithoutCurrent.getFirstNode(), wireWithoutCurrent.getSecondNode()
+            #it's arbitrary whether we pick node1 or node2 to look at to get current info (hopefully)
+            #as long as we maintain a standard for current direction
+
+            currentsThroughNode = []
+            #look at the nodes neighbors and add up the currents
+            for neighbor in graph[node1]:
+                neighborNode, neighborComponent = neighbor[0], neighbor[1]
+                indexOfNeighborComponent = self.edges.index(neighborComponent)
+                currentThroughNeighbor = currents[indexOfNeighborComponent]
+                negative = True if voltages[node1] < voltages[neighborNode] else False
+                if negative:
+                    currentThroughNeighbor *= -1
+                currentsThroughNode.append(currentThroughNeighbor)
+            print(currentsThroughNode)
+            currentOfWire = abs(reduce((lambda x, y: x + y), currentsThroughNode))
+
+            for neighbor in graph[node2]:
+                neighborNode, neighborComponent = neighbor[0], neighbor[1]
+                indexOfNeighborComponent = self.edges.index(neighborComponent)
+                currentThroughNeighbor = currents[indexOfNeighborComponent]
+                negative = True if voltages[node1] < voltages[neighborNode] else False
+                if negative:
+                    currentThroughNeighbor *= -1
+                currentsThroughNode.append(currentThroughNeighbor)
+            print(currentsThroughNode)
+            currentOfWire2 = abs(reduce((lambda x, y: x + y), currentsThroughNode))
+            #as long as we maintain direction when calculating currents, we can store the currents as their magnitude to avoid unnessecary data structures
+            print(currentOfWire, currentOfWire2)
+            currents[index] = currentOfWire or currentOfWire2 or 0
+        print(currents)
+            
 
 
 
-        return currents
+
+        return currents 
 
         
 
@@ -322,7 +366,7 @@ if __name__ == '__main__':
     node3 = Node(0,0,3)
     node4 = Node(0,0,4)
     node5 = Node(0,0,5)
-    edge0 = PowerSupply(10, node0, node5)
+    edge0 = PowerSupply(5, node0, node5)
     edge1 = Resistor(5000, node0, node1)
     edge2 = Wire(node1, node2)
     edge3 = Resistor(10000, node1, node4)
