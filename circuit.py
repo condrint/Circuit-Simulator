@@ -43,6 +43,10 @@ class Component():
         self.node1 = node1
         self.node2 = node2
 
+    
+    def __repr__(self):
+        return self.getType() + ' connecting {0} and {1}'.format(self.getFirstNode(), self.getSecondNode())
+
     def getFirstNode(self):
         return self.node1
     
@@ -66,9 +70,6 @@ class Component():
 class Wire(Component):
     def __init__(self, node1, node2):
         Component.__init__(self, 'Wire', node1, node2)
-    
-    def __repr__(self):
-        return 'Wire' + str(id(self))
 
     def getNodalAnalysisBehavior(self):
         raise NotImplementedError('Wire should not be in nodal analysis')
@@ -77,9 +78,6 @@ class Resistor(Component):
     def __init__(self, resistance, node1, node2):
         Component.__init__(self, 'Resistor', node1, node2)
         self.resistance = resistance
-    
-    def __repr__(self):
-        return 'Resistor{0} with value {1} ohms'.format(id(self), self.getResistance())
 
     def getResistance(self):
         return self.resistance
@@ -91,9 +89,6 @@ class PowerSupply(Component):
     def __init__(self, volts, positive, negative):
         Component.__init__(self, 'PowerSupply', positive, negative)
         self.volts = volts
-    
-    def __repr__(self):
-        return 'Powersupply{0} with value {1} volts'.format(id(self), self.getVoltage())
         
     def getVoltage(self):
         return self.volts
@@ -146,7 +141,7 @@ class Circuit():
                 self.edges = tempGraph
                 return
             self.edges.append(component)
-            print('Added edge {0}'.format(len(self.edges) - 1))
+            #print('Added edge {0}'.format(len(self.edges) - 1))
         return True
 
     def removeEdge(self, edgeNumber):
@@ -303,7 +298,12 @@ class Circuit():
                 currents.append(0)
 
         graph = self._compileEdges()
-        #REFACTOR THIS OR FACE THE CONSEQUENCES 
+        currents = analyzeEdges(currents, self.edges, graph, voltages)
+        
+        newCurrents = {component:currents[i] for i, component in enumerate(self.edges)}
+        return newCurrents
+
+        """
         for index in indexesOfWiresWithNoCurrent:
             wireWithoutCurrent = self.edges[index]
             node1, node2 = wireWithoutCurrent.getFirstNode(), wireWithoutCurrent.getSecondNode()
@@ -345,10 +345,8 @@ class Circuit():
 
             #as long as we maintain direction when calculating currents, we can store the currents as their magnitude to avoid unnessecary data structures
             currents[index] = currentOfWire or currentOfWire2
+        """
         
-        #convert currents to dictionary to maintain a homogeneous data structure setup with voltages
-        newCurrents = {component:currents[i] for i, component in enumerate(self.edges)}
-        return newCurrents
 
 
         
@@ -356,13 +354,7 @@ class Circuit():
     def nodalAnalysis(self):
         voltages = self._getVoltages()
         currents = self._getCurrents(voltages)
-        print(voltages)
-        for component in currents:
-            print(component.getFirstNode(), component.getSecondNode())
-            print(currents[component])
-            print(
-                ''
-            )
+        print(voltages, currents)
         return (voltages, currents)
 
 if __name__ == '__main__':
@@ -381,8 +373,8 @@ if __name__ == '__main__':
     edge4 = Resistor(10000, node2, node3)
     edge5 = Wire(node3, node4)
     edge6 = Wire(node4, node5)
-    edge7 = Wire(node0, node1) 
+    #edge7 = Wire(node0, node1) 
 
     testCircuit = Circuit()
-    testCircuit.addEdge(edge0, edge1, edge2, edge3, edge4, edge5, edge6, edge7)
+    testCircuit.addEdge(edge0, edge1, edge2, edge3, edge4, edge5, edge6)
     testCircuit.nodalAnalysis()

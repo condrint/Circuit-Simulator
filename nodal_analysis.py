@@ -43,3 +43,85 @@ def analyzeNodes(graph, relations):
     result = linalg.solve(numpyMatrixA, numpyMatrixB)
     nodalVoltages = list(zip(nodes, [float(x) for x in result]))
     return nodalVoltages
+
+def analyzeEdges(currents, edges, graph, voltages):
+    indexesOfWiresWithNoCurrent = []
+    for i, current in enumerate(currents):
+        if current == 0 and edges[i].getType() == 'Wire':
+            indexesOfWiresWithNoCurrent.append(i)
+
+    currentMatrix = []
+    posDirections = [edge.getFirstNode() for edge in edges]
+
+    for index in indexesOfWiresWithNoCurrent:
+        
+        #if edge is a resistor/powersupply with zero current, skip, this is as it should be
+        componentWithZeroCurrent = edges[index]
+        if componentWithZeroCurrent.getType == 'Resistor' or componentWithZeroCurrent.getType == 'PowerSupply':
+            continue
+        
+        #iterate through neighbors and collect more unknown currents or known currents to add to rowEqualTo
+        node1, node2 = componentWithZeroCurrent.getFirstNode(), componentWithZeroCurrent.getSecondNode()
+        nodes = [node1, node2]
+        for node in nodes:
+            newRow = [0 for _ in range(len(currents) + 1)]
+            rowEqualTo = 0
+            newRow[index] = 1 if posDirections[index] == node else -1
+
+            #if we find that we're connected to a powersupply, disregard this row because powersupplies will supply any level of current
+            for neighbor in graph[node]:
+                neighborNode, neighborComponent = neighbor[0], neighbor[1]
+
+                #dont add the edge were trying to calculate for
+                if neighborComponent.getType() == 'PowerSupply':
+                    newRow = [0 for _ in range(len(currents) + 1)]
+                    break
+                #assign direction
+                indexOfEdge = edges.index(neighborComponent)
+                
+                negative = 1 if posDirections[indexOfEdge] == node else -1
+
+                indexOfNeighborComponent = edges.index(neighborComponent)
+                if indexOfNeighborComponent in indexesOfWiresWithNoCurrent:
+                    #unknown current, switch it to -1 in new row
+                    newRow[indexOfNeighborComponent] = negative
+                else:
+                    rowEqualTo += currents[indexOfNeighborComponent] * negative
+
+
+            newRow[-1] = rowEqualTo * -1
+            currentMatrix.append(newRow)
+
+            """ really helpful for debugging keep for now
+            print(node)
+            debugS = ''
+            for c in edges:
+                debugS += c.getType()[0] + str(c.getFirstNode().id) + str(c.getSecondNode().id) + ' '
+            print(debugS)
+            debugS1 = ''
+            for c in newRow:
+                debugS1 += str(c) + '   '
+            print(debugS1)
+            print('')
+            """
+    
+    numpyMatrixA = asarray([row[0:len(row)-1:1] for row in currentMatrix])
+    numpyMatrixB = asarray([row[-1] for row in currentMatrix])
+    result = linalg.lstsq(numpyMatrixA, numpyMatrixB, rcond=None)
+    newCurrents = result[0]
+    currents = list(currents) #dereferrence or something
+    
+    for index in indexesOfWiresWithNoCurrent:
+        if newCurrents[index] > 0.000000001:
+            currents[index] = newCurrents[index]
+    
+    return currents
+                        
+
+
+
+
+
+
+    
+    
