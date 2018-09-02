@@ -112,7 +112,7 @@ def analyzeEdges(currents, edges, graph, voltages):
     currents = list(currents) #dereferrence or something
     
     for index in indexesOfWiresWithNoCurrent:
-        if newCurrents[index] > 0.000000001:
+        if newCurrents[index] > 0.0000000000001: #arbitrary cutoff point
             currents[index] = newCurrents[index]
     
     return currents
