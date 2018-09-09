@@ -41,7 +41,6 @@ class Component():
         self.node1 = node1
         self.node2 = node2
 
-    
     def __repr__(self):
         return self.getType() + ' connecting {0} and {1}'.format(self.getFirstNode(), self.getSecondNode())
 
@@ -257,7 +256,6 @@ class Circuit():
             if voltage:
                 graph[node] = voltage
             
-                        
         return (graph, unsimplifiedNodeRelationships)
 
 
@@ -304,5 +302,4 @@ class Circuit():
     def nodalAnalysis(self):
         voltages = self._getVoltages()
         currents = self._getCurrents(voltages)
-        print(voltages, currents)
         return (voltages, currents)

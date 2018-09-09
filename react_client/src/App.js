@@ -228,12 +228,15 @@ class App extends Component {
     let edges = this.state.edges;
     let nodes = this.state.numberOfNodes;
     axios.post('/api/simulate', {edges, nodes}).then(response => {
+      console.log('hi');
+      console.log(response);
       this.setState({
         ableToStopSimulating: true
       });
     }).catch(error => {
       alert('Error simulating');
     })
+    console.log('hi2');
   }
 
   render() {
