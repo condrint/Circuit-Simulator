@@ -1,4 +1,4 @@
-import circuit
+
 from numpy import *
 from functools import reduce
 
@@ -117,7 +117,7 @@ def analyzeEdges(currents, edges, graph, voltages):
     
     return currents
                         
-
+import circuit
 
 
 

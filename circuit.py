@@ -1,10 +1,8 @@
 from functools import reduce
-
+from nodal_analysis import *
 
 class Node():
-    def __init__(self, x, y, idOfNode):
-        self.x = x
-        self.y = y
+    def __init__(self, idOfNode):
         self.id = idOfNode
         self._id = id(self)
     
@@ -303,78 +301,8 @@ class Circuit():
         newCurrents = {component:currents[i] for i, component in enumerate(self.edges)}
         return newCurrents
 
-        """
-        for index in indexesOfWiresWithNoCurrent:
-            wireWithoutCurrent = self.edges[index]
-            node1, node2 = wireWithoutCurrent.getFirstNode(), wireWithoutCurrent.getSecondNode()
-            #it's arbitrary whether we pick node1 or node2 to look at to get current info (hopefully)
-            #as long as we maintain a standard for current direction
-
-            currentsThroughNode = []
-            #look at the nodes neighbors and add up the currents
-            for neighbor in graph[node1]:
-                neighborNode, neighborComponent = neighbor[0], neighbor[1]
-                if neighborNode == node2:
-                    continue
-                indexOfNeighborComponent = self.edges.index(neighborComponent)
-                currentThroughNeighbor = currents[indexOfNeighborComponent]
-
-                #assign an arbitrary direction for calculations
-                negative = True if voltages[node1] > voltages[neighborNode] else False
-                if negative:
-                    currentThroughNeighbor *= -1
-                
-                currentsThroughNode.append(currentThroughNeighbor)
-            
-            currentOfWire = abs(reduce((lambda x, y: x + y), currentsThroughNode)) if currentsThroughNode else 0
-            currentsThroughNode = []
-            for neighbor in graph[node2]:
-                neighborNode, neighborComponent = neighbor[0], neighbor[1]
-                if neighborNode == node1:
-                    continue
-                indexOfNeighborComponent = self.edges.index(neighborComponent)
-                currentThroughNeighbor = currents[indexOfNeighborComponent]
-                #assign an arbitrary direction for calculations
-                negative = True if voltages[node2] > voltages[neighborNode] else False
-                if negative:
-                    currentThroughNeighbor *= -1
-
-                currentsThroughNode.append(currentThroughNeighbor)
-            
-            currentOfWire2 = abs(reduce((lambda x, y: x + y), currentsThroughNode)) if currentsThroughNode else 0
-
-            #as long as we maintain direction when calculating currents, we can store the currents as their magnitude to avoid unnessecary data structures
-            currents[index] = currentOfWire or currentOfWire2
-        """
-        
-
-
-        
-
     def nodalAnalysis(self):
         voltages = self._getVoltages()
         currents = self._getCurrents(voltages)
         print(voltages, currents)
         return (voltages, currents)
-
-if __name__ == '__main__':
-    #importing here avoids circular dependency loops
-    from nodal_analysis import *
-    node0 = Node(0,0,0)
-    node1 = Node(0,0,1)
-    node2 = Node(0,0,2)
-    node3 = Node(0,0,3)
-    node4 = Node(0,0,4)
-    node5 = Node(0,0,5)
-    edge0 = PowerSupply(5, node0, node5)
-    edge1 = Resistor(5000, node0, node1)
-    edge2 = Wire(node1, node2)
-    edge3 = Resistor(10000, node1, node4)
-    edge4 = Resistor(10000, node2, node3)
-    edge5 = Wire(node3, node4)
-    edge6 = Wire(node4, node5)
-    #edge7 = Wire(node0, node1) 
-
-    testCircuit = Circuit()
-    testCircuit.addEdge(edge0, edge1, edge2, edge3, edge4, edge5, edge6)
-    testCircuit.nodalAnalysis()

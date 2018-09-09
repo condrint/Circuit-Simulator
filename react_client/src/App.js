@@ -68,7 +68,7 @@ class App extends Component {
   checkIfEdgeExists(node1, node2){
     for (let edge of this.state.edges){
       if((edge[1] === node1 && edge[2] === node2) || (edge[1] === node2 && edge[2] === node1)){
-        return true;
+        return edge;
       }
     }
     return false;
@@ -128,11 +128,11 @@ class App extends Component {
       return;
     }
     if (isNaN(voltsValue)){
-      alert('Resistor value must be a valid integer');
+      alert('Volts value must be a valid integer');
       return;
     }
     if (voltsValue === '0'){
-      alert('Resistor value must not be zero');
+      alert('Volts value must not be zero');
       return;
     }
     if (node1 === node2){
@@ -150,11 +150,56 @@ class App extends Component {
     alert('Added component.');
     return;
   }
+
   handleWireSubmit(e){
     e.preventDefault();
+    let node1 = this.state.wireNode1InputValue;
+    let node2 = this.state.wireNode2InputValue;
+
+    if (this.checkIfEdgeExists(node1, node2)){
+      alert('Component already exists between ' + node1 + ' and ' + node2 + '.');
+      return;
+    }
+    if(!((node1 || node1 === '0') && (node2 || node2 === '0'))){
+      alert('Fields must not be empty');
+      return;
+    }
+    if (node1 === node2){
+      alert('Cannot connect a node to itself.');
+      return;
+    }
+    let curEdges = this.state.edges;
+    curEdges.push('W' + node1 + node2)
+    this.setState({
+      edges: curEdges,
+      wireNode1InputValue: 0,
+      wireNode2InputValue: 0
+    })
+    alert('Added component.');
+    return;
   }
+
   handleDeleteEdgesSubmit(e){
     e.preventDefault();
+    let node1 = this.state.deleteNode1InputValue;
+    let node2 = this.state.deleteNode2InputValue;
+    let curEdges = [];
+    let edgeToDelete = this.checkIfEdgeExists(node1, node2);
+    if (edgeToDelete){
+      curEdges = this.state.edges;
+      curEdges.splice(curEdges.indexOf(edgeToDelete), 1);
+    }
+    else{
+      alert('No component exists between ' + node1 + ' and ' + node2 + '.');
+      return;
+    }
+    this.setState({
+      edges: curEdges,
+      deleteNode1InputValue: 0,
+      deleteNode2InputValue: 0
+    })
+    alert('Deleted component.');
+    return;
   }
 
   //handle input changes
@@ -176,7 +221,19 @@ class App extends Component {
   handleColChange(e){this.setState({colOfNodesInput: e.target.value});}
 
   simulate(){
-
+    if(this.state.edges.length === 0){
+      alert('Components must be added to simulate.');
+      return;
+    }
+    let edges = this.state.edges;
+    let nodes = this.state.numberOfNodes;
+    axios.post('/api/simulate', {edges, nodes}).then(response => {
+      this.setState({
+        ableToStopSimulating: true
+      });
+    }).catch(error => {
+      alert('Error simulating');
+    })
   }
 
   render() {
@@ -206,25 +263,14 @@ class App extends Component {
               <input className="button" id="AddInput" type="submit" value="create nodes" disabled={this.state.nodesCreated}/>
             </form>
             <hr/>
-
-            <NodeInput nodesNumber={this.state.numberOfNodes} handleSubmit={this.handleResistorSubmit} type="resistor" placeholder="Ω" Node1InputValue={this.state.resistorNode1InputValue} Node2InputValue={this.state.resistorNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handleResistorNode1InputChange} handleNode2InputChange={this.handleResistorNode2InputChange} InputValue={this.state.resistorInputValue} handleInputChange={this.handleResistorInputChange}/>
-            <NodeInput nodesNumber={this.state.numberOfNodes} handleSubmit={this.handlePowerSupplySubmit} type="power supply" placeholder="V" Node1InputValue={this.state.powerSupplyNode1InputValue} Node2InputValue={this.state.powerSupplyNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handlePowerSupplyNode1InputChange} handleNode2InputChange={this.handlePowerSupplyNode2InputChange} InputValue={this.state.powerSupplyInputValue} handleInputChange={this.handlePowerSupplyInputChange}/>
-
-            
-            <form onSubmit={this.handleWireSubmit} disabled={this.state.nodesCreated}>
-              <input className="nodeInput" type="text" name="firstNodeWireValue" placeholder="first node" value={this.state.wireNode1InputValue} onChange={this.handleWireNode1InputChange} disabled={!this.state.nodesCreated || this.state.simulating}/>
-              <input className="nodeInput" type="text" name="secondNodeWireValue" placeholder="second node" value={this.state.wireNode2InputValue} onChange={this.handleWireNode2InputChange} disabled={!this.state.nodesCreated || this.state.simulating}/>
-              <input className="button" type="submit" value="create wire" disabled={!this.state.nodesCreated || this.state.simulating}/>
-            </form>
+              <NodeInput hasValue={true} nodesNumber={this.state.numberOfNodes} handleSubmit={this.handleResistorSubmit} type="create resistor" placeholder="Ω" Node1InputValue={this.state.resistorNode1InputValue} Node2InputValue={this.state.resistorNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handleResistorNode1InputChange} handleNode2InputChange={this.handleResistorNode2InputChange} InputValue={this.state.resistorInputValue} handleInputChange={this.handleResistorInputChange}/>
+              <NodeInput hasValue={true} nodesNumber={this.state.numberOfNodes} handleSubmit={this.handlePowerSupplySubmit} type="create power supply" placeholder="V" Node1InputValue={this.state.powerSupplyNode1InputValue} Node2InputValue={this.state.powerSupplyNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handlePowerSupplyNode1InputChange} handleNode2InputChange={this.handlePowerSupplyNode2InputChange} InputValue={this.state.powerSupplyInputValue} handleInputChange={this.handlePowerSupplyInputChange}/>
+              <NodeInput hasValue={false} nodesNumber={this.state.numberOfNodes} handleSubmit={this.handleWireSubmit} type="create wire" Node1InputValue={this.state.wireNode1InputValue} Node2InputValue={this.state.wireNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handleWireNode1InputChange} handleNode2InputChange={this.handleWireNode2InputChange}/>
             <hr/>
-            <form onSubmit={this.handleDeleteEdgeSubmit} disabled={this.state.nodesCreated}>
-              <input className="nodeInput" type="text" name="firstNodeValue" placeholder="first node" value={this.state.deleteNode1InputValue} onChange={this.handleDeleteNode1InputChange} disabled={!this.state.nodesCreated || this.state.simulating}/>
-              <input className="nodeInput" type="text" name="secondNodeValue" placeholder="second node" value={this.state.deleteNode2InputValue} onChange={this.handleDeleteNode2InputChange} disabled={!this.state.nodesCreated || this.state.simulating}/>
-              <input className="button" type="submit" value="delete component" disabled={!this.state.nodesCreated || this.state.simulating}/>
-            </form>
+              <NodeInput hasValue={false} nodesNumber={this.state.numberOfNodes} handleSubmit={this.handleDeleteEdgesSubmit} type="delete component" Node1InputValue={this.state.deleteNode1InputValue} Node2InputValue={this.state.deleteNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handleDeleteNode1InputChange} handleNode2InputChange={this.handleDeleteNode2InputChange}/>
             <hr/>
-            <button type="button" onClick={this.simulate} disabled={!this.state.nodesCreated || this.state.simulating}>simulate</button>
-            <button type="button" onClick={this.simulate} disabled={!this.state.ableToStopSimulating}>stop simulate</button>   
+              <button type="button" onClick={this.simulate} disabled={!this.state.nodesCreated || this.state.simulating}>simulate</button>
+              <button type="button" onClick={this.simulate} disabled={!this.state.ableToStopSimulating}>stop simulate</button>   
             <hr/>
         </div>
         <div>{edges}</div>
