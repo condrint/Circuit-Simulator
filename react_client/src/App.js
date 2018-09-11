@@ -29,7 +29,9 @@ class App extends Component {
       rowsOfNodesInput: '2', //default value for the drop down list
       colOfNodesInput: '2',
       
-      edges: []
+      edges: [],
+
+      simulationResults: ''
     }
 
     this.handleNodeSubmit = this.handleNodeSubmit.bind(this);
@@ -225,22 +227,26 @@ class App extends Component {
       alert('Components must be added to simulate.');
       return;
     }
+    //this.setState({
+    //  simulating: true
+    //})
     let edges = this.state.edges;
     let nodes = this.state.numberOfNodes;
     axios.post('/api/simulate', {edges, nodes}).then(response => {
-      console.log('hi');
-      console.log(response);
+      console.log(response.data);
       this.setState({
-        ableToStopSimulating: true
+        ableToStopSimulating: true,
+        simulationResults: response.data
       });
     }).catch(error => {
       alert('Error simulating');
     })
-    console.log('hi2');
+    
   }
 
   render() {
     let edges = this.state.edges;
+    let volt = JSON.stringify(this.state.simulationResults);
     return (
       <div className="App">
         <div id="inputContainer">
@@ -277,6 +283,7 @@ class App extends Component {
             <hr/>
         </div>
         <div>{edges}</div>
+        <div>{volt}</div>
       </div>
     );
   }

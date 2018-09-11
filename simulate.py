@@ -25,12 +25,12 @@ def simulate(edges, nodeCount):
         circuit = '' #dereference object
 
         #convert everything to strings and numbers for internet transport
-        voltage = {str(node.getID()): voltage[node] for node in voltage.keys()}
-        current = {str(component.getFirstNode().getID()) + str(component.getSecondNode().getID()): current[component] for component in current.keys()}
+        voltage = {str(node.getID()): str(voltage[node]) for node in voltage.keys()}
+        current = {str(component.getFirstNode().getID()) + 'and' + str(component.getSecondNode().getID()): str(current[component]) for component in current.keys()}
         
-        return {'voltages': voltage, 'currents': current}
+        return {**voltage, **current}
     except:
-        return {'voltages': '', 'currents': ''}
+        return {'', ''}
 
         
         
