@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 const axios = require('axios');
-const { NodeInput } = require('./nodeinput')
+const { NodeInput } = require('./nodeinput');
+const { Circuit } = require('./circuit');
 
 class App extends Component {
   constructor(){
@@ -104,7 +105,7 @@ class App extends Component {
     }
 
     let curEdges = this.state.edges;
-    curEdges.push('R' + node1 + node2 + resistorValue)
+    curEdges.push('R' + node1 + 'and' + node2 + 'v' + resistorValue)
     this.setState({
       edges: curEdges,
       resistorInputValue: '',
@@ -142,7 +143,7 @@ class App extends Component {
       return;
     }
     let curEdges = this.state.edges;
-    curEdges.push('P' + node1 + node2 + voltsValue)
+    curEdges.push('P' + node1 + 'and' + node2 + 'v' + voltsValue)
     this.setState({
       edges: curEdges,
       powerSupplyInputValue: '',
@@ -171,7 +172,7 @@ class App extends Component {
       return;
     }
     let curEdges = this.state.edges;
-    curEdges.push('W' + node1 + node2)
+    curEdges.push('W' + node1 + 'and' + node2 + 'v')
     this.setState({
       edges: curEdges,
       wireNode1InputValue: 0,
@@ -284,6 +285,7 @@ class App extends Component {
         </div>
         <div>{edges}</div>
         <div>{volt}</div>
+        <Circuit edges={this.state.edges} nodes={this.state.nodeDimensions}/>
       </div>
     );
   }

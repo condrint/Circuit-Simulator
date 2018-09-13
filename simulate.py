@@ -7,7 +7,15 @@ def simulate(edges, nodeCount):
     edgesToAdd = []
 
     for edge in edges:
-        typeOfEdge, node0, node1, value = edge[0], int(edge[1]), int(edge[2]), edge[3::]
+        #string manipulation to read in data from react
+        type_node0, node1_value = edge.split('and')
+        typeOfEdge, node0 = type_node0[0], int(type_node0[1::])
+        node1, value = node1_value.split('v')
+        node1 = int(node1)
+
+        #probably okay to remove but keep just incase
+        #typeOfEdge, node0, node1, value = edge[0], int(edge[1]), int(edge[2]), edge[3::]
+
         if value:
             value = int(value)
         if typeOfEdge == 'R':
