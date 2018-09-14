@@ -29,16 +29,16 @@ class Circuit extends Component{
         //  c. ok so were in the same column them (placement is not legal otherwise)
         //      -find column by %col
         //      -find both rows and place in [col, row in between (add up and div by 2)] node/col * 2 to find row
+        let edges = this.props.edges;
         let nodes = this.props.nodes;
         let rows = 0;
         let cols = 0;
         if (nodes){
             rows = nodes[0];
-            cols = nodes[1];
         }
         let circuit = [];
         const blankSpot = '\t\t\t\n\t\t\t\n\t\t\t'
-        const nodeSpot = '\t\t\t\n\t·\t\n\t\t\t'
+        const nodeSpot = '\t\t\t\n\to\t\n\t\t\t'
 
         //create blank circuit and place nodes
         for(let i = 0; i < 2 * rows - 1; i++){
@@ -46,34 +46,92 @@ class Circuit extends Component{
             if (i % 2 == 0){
                 for(let j = 0; j < 2 * cols - 1; j++){
                     if (j % 2 == 0){
-                        newRow.push(nodeSpot);
+                        newRow.push([nodeSpot, '']);
                     }
                     else{
-                        newRow.push(blankSpot);
+                        newRow.push([blankSpot, '']);
                     }
                 }
             }
             else{
                 for(let j = 0; j < 2 * cols - 1; j++){
-                    newRow.push(blankSpot);
+                    newRow.push([blankSpot, '']);
                 }
-            }
+            } //blank spot for resistance/voltage for resistors/power supplies
             circuit.push(newRow);
         }
 
         //place edges
-        for (let edge of edges){
-            
+        if (rows && cols){
+            for (let edge of edges){
+                //string manipulation to get data from edges
+                let splitEdge = edge.split('and');
+                let type_node0 = splitEdge[0]
+                let node1_value = splitEdge[1].split('v');
+                let nodeType = splitEdge[0].slice(0, 1);
+                let node0 = parseInt(splitEdge[0].slice(1), 10);
+                let node1 = parseInt(node1_value[0], 10);
+                let value = parseInt(node1_value[1], 10);
+
+                let rowToPlaceEdge = 0;
+                let colToPlaceEdge = 0;
+
+                //find if nodes are in same row or same column (this condition is enforced in app.js)
+                if (Math.floor(node0 / cols) == Math.floor(node1 / cols)){
+                    //same row
+                    rowToPlaceEdge = Math.floor(node0 / cols); //node1 would work find too
+                    colToPlaceEdge = (node0 % cols) + (node1 % cols);
+
+                    let spot = '\t\t\t\n----' + nodeType + '----\n\t\t\t';
+                    let spotValue = '';
+                    if (value){
+                        if(nodeType == 'R'){
+                            spotValue = value + 'Ω';
+                        }
+                        else if(nodeType == 'P'){
+                            spotValue = value + 'V';
+                        }
+                    }
+
+                    circuit[rowToPlaceEdge][colToPlaceEdge] = [spot, spotValue];
+                    
+                }
+                else{
+                    //same column
+                    colToPlaceEdge = node0 % cols; //node1 would work fine too
+                    rowToPlaceEdge = ((2 * (Math.floor(node0 / cols))) + (2 * (Math.floor(node1 / cols)))) / 2;
+
+                    let spot = '\t|\t\n\t' + nodeType + '\n\t|\t';
+                    let spotValue = '';
+                    if (value){
+                        if(nodeType == 'R'){
+                            spotValue = value + 'Ω';
+                        }
+                        else if(nodeType == 'P'){
+                            spotValue = value + 'V';
+                        }
+                    }
+
+                    circuit[rowToPlaceEdge][colToPlaceEdge] = [spot, spotValue];
+                }
+                
+            }
         }
-
-
-
-
+        console.log(circuit);
         return(
             <div>
+                {'test'}
                 {nodes &&
-                    <table id="Circuit">
-
+                    <table id="Circuit" cellpadding="10">
+                        <tbody>
+                            {circuit && circuit.map((row, index) => 
+                                <tr key={index}>
+                                    {row.map((data, index) => 
+                                        <td title={data[1]} key={index}>{data[0]}</td>
+                                    )}
+                                </tr>
+                            )}
+                        </tbody>
                     </table>
                 }
             </div>
