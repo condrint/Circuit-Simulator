@@ -35,11 +35,11 @@ class Circuit extends Component{
         let cols = 0;
         if (nodes){
             rows = nodes[0];
+            cols = nodes[1];
         }
         let circuit = [];
-        const blankSpot = '\t\t\t\n\t\t\t\n\t\t\t'
-        const nodeSpot = '\t\t\t\n\to\t\n\t\t\t'
-
+        const blankSpot = '\t\n\t\n\t'
+        const nodeSpot = '\t\n  o  \n\t'
         //create blank circuit and place nodes
         for(let i = 0; i < 2 * rows - 1; i++){
             let newRow = []
@@ -82,7 +82,7 @@ class Circuit extends Component{
                     rowToPlaceEdge = Math.floor(node0 / cols); //node1 would work find too
                     colToPlaceEdge = (node0 % cols) + (node1 % cols);
 
-                    let spot = '\t\t\t\n----' + nodeType + '----\n\t\t\t';
+                    let spot = '\t\n----' + nodeType + '----\n\t';
                     let spotValue = '';
                     if (value){
                         if(nodeType == 'R'){
@@ -92,16 +92,16 @@ class Circuit extends Component{
                             spotValue = value + 'V';
                         }
                     }
-
+                    
                     circuit[rowToPlaceEdge][colToPlaceEdge] = [spot, spotValue];
                     
                 }
                 else{
                     //same column
-                    colToPlaceEdge = node0 % cols; //node1 would work fine too
+                    colToPlaceEdge = (node0 % cols) * 2; //node1 would work fine too
                     rowToPlaceEdge = ((2 * (Math.floor(node0 / cols))) + (2 * (Math.floor(node1 / cols)))) / 2;
 
-                    let spot = '\t|\t\n\t' + nodeType + '\n\t|\t';
+                    let spot = '  |  \n  ' + nodeType + '  \n  |  ';
                     let spotValue = '';
                     if (value){
                         if(nodeType == 'R'){
@@ -111,23 +111,22 @@ class Circuit extends Component{
                             spotValue = value + 'V';
                         }
                     }
-
+                    console.log(rowToPlaceEdge, colToPlaceEdge);
+                    console.log([spot, spotValue]);
                     circuit[rowToPlaceEdge][colToPlaceEdge] = [spot, spotValue];
                 }
                 
             }
         }
-        console.log(circuit);
         return(
             <div>
-                {'test'}
                 {nodes &&
-                    <table id="Circuit" cellpadding="10">
+                    <table id="Circuit" cellPadding="5">
                         <tbody>
                             {circuit && circuit.map((row, index) => 
                                 <tr key={index}>
-                                    {row.map((data, index) => 
-                                        <td title={data[1]} key={index}>{data[0]}</td>
+                                    {row && row.map((data, index) => 
+                                        <td title={data[1]} key={index}><pre>{data[0]}</pre></td>
                                     )}
                                 </tr>
                             )}

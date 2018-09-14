@@ -54,6 +54,7 @@ class App extends Component {
     this.handleColChange = this.handleColChange.bind(this);
     this.simulate = this.simulate.bind(this);
     this.checkIfEdgeExists = this.checkIfEdgeExists.bind(this);
+    this.checkIfEdgeConnectsNeighbors = this.checkIfEdgeConnectsNeighbors.bind(this);
   }
 
   //handle submits
@@ -67,10 +68,31 @@ class App extends Component {
       colOfNodesInput: ''
     })
   }
+
+  checkIfEdgeConnectsNeighbors(node1, node2){
+    node1 = parseInt(node1, 10);
+    node2 = parseInt(node2, 10);
+    let rows = parseInt(this.state.nodeDimensions[0], 10);
+    let cols = parseInt(this.state.nodeDimensions[1], 10);
+    if(Math.floor(node1 / cols) === Math.floor(node2 / cols)){
+      //same row
+      return Math.abs(node1 - node2) === 1;
+    }
+    else if(node1 % cols === node2 % cols){
+      //same col
+      return Math.abs(Math.floor(node1 / cols) - Math.floor(node2 / cols)) === 1;
+    }
+    //diagonally related somehow
+    return false; 
+  }
   
   checkIfEdgeExists(node1, node2){
     for (let edge of this.state.edges){
-      if((edge[1] === node1 && edge[2] === node2) || (edge[1] === node2 && edge[2] === node1)){
+      let splitEdge = edge.split('and');
+      let node1_value = splitEdge[1].split('v');
+      let node0FromEdge = splitEdge[0].slice(1);
+      let node1FromEdge = node1_value[0];
+      if((node0FromEdge === node1 && node1FromEdge === node2) || (node0FromEdge === node2 && node1FromEdge === node1)){
         return edge;
       }
     }
@@ -87,7 +109,11 @@ class App extends Component {
       alert('Component already exists between ' + node1 + ' and ' + node2 + '.');
       return;
     }
-    if(!(resistorValue && (node1 || node1 === '0') && (node2 || node2 === '0'))){
+    if (!this.checkIfEdgeConnectsNeighbors(node1, node2)){
+      alert('Nodes aren\'t adjacent.');
+      return;
+    }
+    if(!(resistorValue)){
       alert('Fields must not be empty.');
       return;
     }
@@ -126,7 +152,7 @@ class App extends Component {
       alert('Component already exists between ' + node1 + ' and ' + node2 + '.');
       return;
     }
-    if(!(voltsValue && (node1 || node1 === '0') && (node2 || node2 === '0'))){
+    if(!(voltsValue)){
       alert('Fields must not be empty');
       return;
     }
@@ -161,10 +187,6 @@ class App extends Component {
 
     if (this.checkIfEdgeExists(node1, node2)){
       alert('Component already exists between ' + node1 + ' and ' + node2 + '.');
-      return;
-    }
-    if(!((node1 || node1 === '0') && (node2 || node2 === '0'))){
-      alert('Fields must not be empty');
       return;
     }
     if (node1 === node2){
@@ -234,7 +256,6 @@ class App extends Component {
     let edges = this.state.edges;
     let nodes = this.state.numberOfNodes;
     axios.post('/api/simulate', {edges, nodes}).then(response => {
-      console.log(response.data);
       this.setState({
         ableToStopSimulating: true,
         simulationResults: response.data
