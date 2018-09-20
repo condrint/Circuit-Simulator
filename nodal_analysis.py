@@ -32,11 +32,12 @@ def analyzeNodes(graph, relations):
                     newRow[posIndex].append(coefficient)
                     newRow[negIndex].append(-1*coefficient)
         #combine coefficients
-        simplifiedNewRow = [reduce((lambda x, y: x + y), coefs) for coefs in newRow]
+        simplifiedNewRow = [reduce((lambda x, y: x + y), coefs) if coefs else 0 for coefs in newRow]
 
         #add to matrix
         matrix[matrixPosition][0:len(matrix[matrixPosition])-1:1] = simplifiedNewRow
 
+    
     #solve resulting matrix by seperating matrix in A, B where Ax=B and result will be x, our nodal voltages
     numpyMatrixA = asarray([row[0:len(row)-1:1] for row in matrix])
     numpyMatrixB = asarray([row[-1] for row in matrix])
@@ -45,6 +46,7 @@ def analyzeNodes(graph, relations):
     return nodalVoltages
 
 def analyzeEdges(currents, edges, graph, voltages):
+    print(voltages)
     indexesOfWiresWithNoCurrent = []
     for i, current in enumerate(currents):
         if current == 0 and edges[i].getType() == 'Wire':
@@ -92,7 +94,7 @@ def analyzeEdges(currents, edges, graph, voltages):
             newRow[-1] = rowEqualTo * -1
             currentMatrix.append(newRow)
 
-            """ really helpful for debugging keep for now
+            #really helpful for debugging keep for now
             print(node)
             debugS = ''
             for c in edges:
@@ -103,17 +105,22 @@ def analyzeEdges(currents, edges, graph, voltages):
                 debugS1 += str(c) + '   '
             print(debugS1)
             print('')
-            """
+            #
+
+    #added to prevent crash when circuit has no wires
+    if not currentMatrix:
+        return currents
     
     numpyMatrixA = asarray([row[0:len(row)-1:1] for row in currentMatrix])
     numpyMatrixB = asarray([row[-1] for row in currentMatrix])
     result = linalg.lstsq(numpyMatrixA, numpyMatrixB, rcond=None)
+    
     newCurrents = result[0]
     currents = list(currents) #dereferrence or something
-    
+
     for index in indexesOfWiresWithNoCurrent:
-        if newCurrents[index] > 0.0000000000001: #arbitrary cutoff point
-            currents[index] = newCurrents[index]
+        if abs(newCurrents[index]) > 0.0000000000001: #arbitrary cutoff point
+            currents[index] = abs(newCurrents[index])
     
     return currents
                         

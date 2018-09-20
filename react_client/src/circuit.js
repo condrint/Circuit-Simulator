@@ -2,9 +2,9 @@ import React, { Component } from 'react';
 
 class Circuit extends Component{
     constructor(props){
-        super(props)
+        super(props);
+    
     }
-
     render() {
         //rows and columns
         //total trs (rows) = rows + (rows - 1) and same for td and columns
@@ -40,22 +40,30 @@ class Circuit extends Component{
         let circuit = [];
         const blankSpot = '\t\n\t\n\t'
         const nodeSpot = '\t\n  o  \n\t'
+        let simResults = this.props.simulationResults;
         //create blank circuit and place nodes
         for(let i = 0; i < 2 * rows - 1; i++){
             let newRow = []
             if (i % 2 == 0){
                 for(let j = 0; j < 2 * cols - 1; j++){
                     if (j % 2 == 0){
-                        newRow.push([nodeSpot, '']);
+                        let nodalVoltage = '';
+                        let nodeNumber = ((i / 2 * cols) + (j % (cols * 2 - 1)) / 2).toString();
+
+                        //if nodal voltage exists, render it as title at node
+                        if (simResults.hasOwnProperty(nodeNumber.toString())){
+                            nodalVoltage = ', ' + parseFloat(simResults[nodeNumber.toString()], 10).toPrecision(4).toString() + 'V'
+                        }
+                        newRow.push([nodeSpot, 'node' + nodeNumber + nodalVoltage]);
                     }
                     else{
-                        newRow.push([blankSpot, '']);
+                        newRow.push([blankSpot, 'Empty']);
                     }
                 }
             }
             else{
                 for(let j = 0; j < 2 * cols - 1; j++){
-                    newRow.push([blankSpot, '']);
+                    newRow.push([blankSpot, 'Empty']);
                 }
             } //blank spot for resistance/voltage for resistors/power supplies
             circuit.push(newRow);
@@ -79,10 +87,22 @@ class Circuit extends Component{
                 //find if nodes are in same row or same column (this condition is enforced in app.js)
                 if (Math.floor(node0 / cols) == Math.floor(node1 / cols)){
                     //same row
-                    rowToPlaceEdge = Math.floor(node0 / cols); //node1 would work find too
+                    rowToPlaceEdge = 2 * (Math.floor(node0 / cols)); //node1 would work find too
                     colToPlaceEdge = (node0 % cols) + (node1 % cols);
-
+                    
+                   
                     let spot = '\t\n----' + nodeType + '----\n\t';
+                    
+                    //node0 is positive terminal 
+                    if(nodeType == 'P'){
+                        if (node0 > node1){
+                            spot = '-\t+\n----' + nodeType + '----\n\t';
+                        }
+                        else{
+                            spot = '+\t-\n----' + nodeType + '----\n\t';
+                        }
+                    }
+                    
                     let spotValue = '';
                     if (value){
                         if(nodeType == 'R'){
@@ -92,7 +112,12 @@ class Circuit extends Component{
                             spotValue = value + 'V';
                         }
                     }
-                    
+
+                    //check for current in simresults
+                    let nodes = node0.toString() + 'and' + node1.toString();
+                    if (simResults.hasOwnProperty(nodes)){
+                        spotValue += '\n' + parseFloat(simResults[nodes], 10).toPrecision(4).toString() + 'A'
+                    }
                     circuit[rowToPlaceEdge][colToPlaceEdge] = [spot, spotValue];
                     
                 }
@@ -102,6 +127,17 @@ class Circuit extends Component{
                     rowToPlaceEdge = ((2 * (Math.floor(node0 / cols))) + (2 * (Math.floor(node1 / cols)))) / 2;
 
                     let spot = '  |  \n  ' + nodeType + '  \n  |  ';
+
+                    //node0 is positive terminal 
+                    if(nodeType == 'P'){
+                        if (node0 > node1){
+                            spot = '  | -\n  ' + nodeType + '  \n  | +';
+                        }
+                        else{
+                            spot = '  | +\n  ' + nodeType + '  \n  | -';
+                        }
+                    }
+                    
                     let spotValue = '';
                     if (value){
                         if(nodeType == 'R'){
@@ -111,13 +147,18 @@ class Circuit extends Component{
                             spotValue = value + 'V';
                         }
                     }
-                    console.log(rowToPlaceEdge, colToPlaceEdge);
-                    console.log([spot, spotValue]);
+                    //check for current in simresults
+                    let nodes = node0.toString() + 'and' + node1.toString();
+                    if (simResults.hasOwnProperty(nodes)){
+                        spotValue += '\n' + parseFloat(simResults[nodes], 10).toPrecision(4).toString() + 'A'
+                    }
+                    
                     circuit[rowToPlaceEdge][colToPlaceEdge] = [spot, spotValue];
                 }
                 
             }
         }
+
         return(
             <div>
                 {nodes &&
@@ -126,7 +167,7 @@ class Circuit extends Component{
                             {circuit && circuit.map((row, index) => 
                                 <tr key={index}>
                                     {row && row.map((data, index) => 
-                                        <td title={data[1]} key={index}><pre>{data[0]}</pre></td>
+                                        <td title={data[1]} key={index}><pre className={"addHoverCursor"} style={simResults && {color: 'red'} || {color: 'black'}}>{data[0]}</pre></td> //).length != 0 && "addHoverCursor" || "noEdgeExistsHere"
                                     )}
                                 </tr>
                             )}

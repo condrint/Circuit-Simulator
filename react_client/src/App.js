@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
+import title from './title.png'
 const axios = require('axios');
 const { NodeInput } = require('./nodeinput');
 const { Circuit } = require('./circuit');
+
+
 
 class App extends Component {
   constructor(){
@@ -55,7 +58,11 @@ class App extends Component {
     this.simulate = this.simulate.bind(this);
     this.checkIfEdgeExists = this.checkIfEdgeExists.bind(this);
     this.checkIfEdgeConnectsNeighbors = this.checkIfEdgeConnectsNeighbors.bind(this);
+    this.stopSimulate = this.stopSimulate.bind(this);
   }
+
+
+  
 
   //handle submits
   handleNodeSubmit(e){
@@ -68,7 +75,7 @@ class App extends Component {
       colOfNodesInput: ''
     })
   }
-
+  
   checkIfEdgeConnectsNeighbors(node1, node2){
     node1 = parseInt(node1, 10);
     node2 = parseInt(node2, 10);
@@ -105,6 +112,12 @@ class App extends Component {
     let node1 = this.state.resistorNode1InputValue;
     let node2 = this.state.resistorNode2InputValue;
     
+    if (node1 === node2){
+      //sendAlert('Cannot connect a node to itself.');
+      alert('Cannot connect a node to itself.')
+      return;
+    }
+    
     if (this.checkIfEdgeExists(node1, node2)){
       alert('Component already exists between ' + node1 + ' and ' + node2 + '.');
       return;
@@ -121,12 +134,8 @@ class App extends Component {
       alert('Resistor value must be a valid integer.');
       return;
     }
-    if (resistorValue === '0'){
-      alert('Resistor value must not be zero.');
-      return;
-    }
-    if (node1 === node2){
-      alert('Cannot connect a node to itself.');
+    if (parseInt(resistorValue, 10) <= 0 ){
+      alert('Resistor value must be greater than zero.');
       return;
     }
 
@@ -147,9 +156,17 @@ class App extends Component {
     let voltsValue = this.state.powerSupplyInputValue;
     let node1 = this.state.powerSupplyNode1InputValue;
     let node2 = this.state.powerSupplyNode2InputValue;
-
+    
+    if (node1 === node2){
+      alert('Cannot connect a node to itself.');
+      return;
+    }
     if (this.checkIfEdgeExists(node1, node2)){
       alert('Component already exists between ' + node1 + ' and ' + node2 + '.');
+      return;
+    }
+    if (!this.checkIfEdgeConnectsNeighbors(node1, node2)){
+      alert('Nodes aren\'t adjacent.');
       return;
     }
     if(!(voltsValue)){
@@ -162,10 +179,6 @@ class App extends Component {
     }
     if (voltsValue === '0'){
       alert('Volts value must not be zero');
-      return;
-    }
-    if (node1 === node2){
-      alert('Cannot connect a node to itself.');
       return;
     }
     let curEdges = this.state.edges;
@@ -184,15 +197,20 @@ class App extends Component {
     e.preventDefault();
     let node1 = this.state.wireNode1InputValue;
     let node2 = this.state.wireNode2InputValue;
+    if (node1 === node2){
+      alert('Cannot connect a node to itself.');
+      return;
+    }
 
     if (this.checkIfEdgeExists(node1, node2)){
       alert('Component already exists between ' + node1 + ' and ' + node2 + '.');
       return;
     }
-    if (node1 === node2){
-      alert('Cannot connect a node to itself.');
+    if (!this.checkIfEdgeConnectsNeighbors(node1, node2)){
+      alert('Nodes aren\'t adjacent.');
       return;
     }
+  
     let curEdges = this.state.edges;
     curEdges.push('W' + node1 + 'and' + node2 + 'v')
     this.setState({
@@ -250,9 +268,9 @@ class App extends Component {
       alert('Components must be added to simulate.');
       return;
     }
-    //this.setState({
-    //  simulating: true
-    //})
+    this.setState({
+      simulating: true
+    });
     let edges = this.state.edges;
     let nodes = this.state.numberOfNodes;
     axios.post('/api/simulate', {edges, nodes}).then(response => {
@@ -262,15 +280,27 @@ class App extends Component {
       });
     }).catch(error => {
       alert('Error simulating');
+      this.setState({
+        simulating: false
+      })
     })
     
   }
 
+  stopSimulate(){
+    this.setState({ 
+      simulating: false,
+      ableToStopSimulating: false,
+      simulationResults: ''
+    })
+  }
+
   render() {
     let edges = this.state.edges;
-    let volt = JSON.stringify(this.state.simulationResults);
+    let simulationResults = this.state.simulationResults;
     return (
       <div className="App">
+        <img src={title} alt="Circuit Simulator"/>
         <div id="inputContainer">
             <form onSubmit={this.handleNodeSubmit} id="nodeForm">
               <select name="rowlist" form="nodeForm" value={this.state.rowsOfNodesInput} onChange={this.handleRowChange} disabled={this.state.nodesCreated}>
@@ -301,12 +331,11 @@ class App extends Component {
               <NodeInput hasValue={false} nodesNumber={this.state.numberOfNodes} handleSubmit={this.handleDeleteEdgesSubmit} type="delete component" Node1InputValue={this.state.deleteNode1InputValue} Node2InputValue={this.state.deleteNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handleDeleteNode1InputChange} handleNode2InputChange={this.handleDeleteNode2InputChange}/>
             <hr/>
               <button type="button" onClick={this.simulate} disabled={!this.state.nodesCreated || this.state.simulating}>simulate</button>
-              <button type="button" onClick={this.simulate} disabled={!this.state.ableToStopSimulating}>stop simulate</button>   
+              <button type="button" onClick={this.stopSimulate} disabled={!this.state.ableToStopSimulating}>stop simulate</button>   
             <hr/>
         </div>
         <div>{edges}</div>
-        <div>{volt}</div>
-        <Circuit edges={this.state.edges} nodes={this.state.nodeDimensions}/>
+        <Circuit edges={this.state.edges} nodes={this.state.nodeDimensions} simulationResults={simulationResults}/>
       </div>
     );
   }
