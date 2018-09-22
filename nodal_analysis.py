@@ -94,7 +94,7 @@ def analyzeEdges(currents, edges, graph, voltages):
             newRow[-1] = rowEqualTo * -1
             currentMatrix.append(newRow)
 
-            #really helpful for debugging keep for now
+            """#really helpful for debugging keep for now
             print(node)
             debugS = ''
             for c in edges:
@@ -105,7 +105,7 @@ def analyzeEdges(currents, edges, graph, voltages):
                 debugS1 += str(c) + '   '
             print(debugS1)
             print('')
-            #
+            """
 
     #added to prevent crash when circuit has no wires
     if not currentMatrix:
