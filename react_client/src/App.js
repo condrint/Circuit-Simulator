@@ -1,19 +1,24 @@
 import React, { Component } from 'react';
-import title from './title.png'
+import title from './title.png';
+import resistor from './resistor.png';
+import wire from './wire.png';
+import power from './power.png';
+import erase from './erase.png';
+import sim from './sim.png';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const axios = require('axios');
 const { NodeInput } = require('./nodeinput');
 const { Circuit } = require('./circuit');
-
-
 
 class App extends Component {
   constructor(){
     super();
     this.state = {
-      nodesCreated: false,
+      nodesCreated: true,
       simulating: false,
       ableToStopSimulating: false,
-      numberOfNodes: '',
+      numberOfNodes: 28,
 
       resistorInputValue: '',
       resistorNode1InputValue: '0',
@@ -29,16 +34,26 @@ class App extends Component {
       deleteNode1InputValue: '0',
       deleteNode2InputValue: '0',
 
-      nodeDimensions: [],
-      rowsOfNodesInput: '2', //default value for the drop down list
-      colOfNodesInput: '2',
+      nodeDimensions: [4, 7],
+      //rowsOfNodesInput: '2', //default value for the drop down list
+      //colOfNodesInput: '2',
       
       edges: [],
 
-      simulationResults: ''
+      simulationResults: '',
+
+      resistorDrawer: false,
+      powerDrawer: false,
+      wireDrawer: false,
+      deleteDrawer: false,
+      resNum: 0,
+      powNum: 0,
+      wireNum: 0,
+      delNum: 0
+
     }
 
-    this.handleNodeSubmit = this.handleNodeSubmit.bind(this);
+    //this.handleNodeSubmit = this.handleNodeSubmit.bind(this);
     this.handleResistorSubmit = this.handleResistorSubmit.bind(this);
     this.handlePowerSupplySubmit = this.handlePowerSupplySubmit.bind(this);
     this.handleWireSubmit = this.handleWireSubmit.bind(this);
@@ -53,18 +68,85 @@ class App extends Component {
     this.handleWireNode2InputChange = this.handleWireNode2InputChange.bind(this);
     this.handleDeleteNode1InputChange = this.handleDeleteNode1InputChange.bind(this);
     this.handleDeleteNode2InputChange = this.handleDeleteNode2InputChange.bind(this);
-    this.handleRowChange = this.handleRowChange.bind(this);
-    this.handleColChange = this.handleColChange.bind(this);
+    //this.handleRowChange = this.handleRowChange.bind(this);
+    //this.handleColChange = this.handleColChange.bind(this);
     this.simulate = this.simulate.bind(this);
     this.checkIfEdgeExists = this.checkIfEdgeExists.bind(this);
     this.checkIfEdgeConnectsNeighbors = this.checkIfEdgeConnectsNeighbors.bind(this);
-    this.stopSimulate = this.stopSimulate.bind(this);
+    this.openResistorTab = this.openResistorTab.bind(this);
+    this.openPowerTab = this.openPowerTab.bind(this);
+    this.openWireTab = this.openWireTab.bind(this);
+    this.openDeleteTab = this.openDeleteTab.bind(this);
+    this.resistorChange = this.resistorChange.bind(this);
+    this.wireChange = this.wireChange.bind(this);
+    this.powerChange = this.powerChange.bind(this);
+    this.deleteChange = this.deleteChange.bind(this);
   }
 
+  resistorChange(val){
+    this.setState({
+      resistorDrawer: val
+    })
+  }
 
+  wireChange(val){
+    this.setState({
+      wireDrawer: val
+    })
+  }
+
+  powerChange(val){
+    this.setState({
+      powerDrawer: val
+    })
+  }
   
+  deleteChange(val){
+    this.setState({
+      deleteDrawer: val
+    })
+  }
 
-  //handle submits
+  openDeleteTab(){
+    let val = this.state.deleteDrawer;
+    this.setState({
+      deleteDrawer: !val,
+      resistorDrawer: false,
+      powerDrawer: false,
+      wireDrawer: false,
+    })
+  }
+
+  openPowerTab(){
+    let val = this.state.powerDrawer;
+    this.setState({
+      powerDrawer: !val,
+      resistorDrawer: false,
+      wireDrawer: false,
+      deleteDrawer: false
+    })
+  }
+
+  openResistorTab(){
+    let val = this.state.resistorDrawer;
+    this.setState({
+      resistorDrawer: !val,
+      powerDrawer: false,
+      wireDrawer: false,
+      deleteDrawer: false
+    })
+  }
+
+  openWireTab(){
+    let val = this.state.wireDrawer;
+    this.setState({
+      wireDrawer: !val,
+      resistorDrawer: false,
+      powerDrawer: false,
+      deleteDrawer: false
+    })
+  }
+  
   handleNodeSubmit(e){
     e.preventDefault();
     this.setState({
@@ -113,29 +195,51 @@ class App extends Component {
     let node2 = this.state.resistorNode2InputValue;
     
     if (node1 === node2){
-      //sendAlert('Cannot connect a node to itself.');
-      alert('Cannot connect a node to itself.')
+      toast('Cannot connect a node to itself.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
-    
     if (this.checkIfEdgeExists(node1, node2)){
-      alert('Component already exists between ' + node1 + ' and ' + node2 + '.');
+      toast('Component already exists between ' + node1 + ' and ' + node2 + '.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
     if (!this.checkIfEdgeConnectsNeighbors(node1, node2)){
-      alert('Nodes aren\'t adjacent.');
+      toast('Nodes aren\'t adjacent.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
     if(!(resistorValue)){
-      alert('Fields must not be empty.');
+      toast('Fields must not be empty.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
     if (isNaN(resistorValue)){
-      alert('Resistor value must be a valid integer.');
+      toast('Resistor value must be a valid nonzero integer.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
     if (parseInt(resistorValue, 10) <= 0 ){
-      alert('Resistor value must be greater than zero.');
+      toast('Resistor value must be a valid nonzero integer.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
 
@@ -147,7 +251,13 @@ class App extends Component {
       resistorNode1InputValue: 0,
       resistorNode2InputValue: 0
     })
-    alert('Added component.');
+    toast('Added component.', {
+      position: toast.POSITION.BOTTOM_LEFT,
+      hideProgressBar: true
+    });
+    this.setState({
+      resistorDrawer: false
+    })
     return;
   }
 
@@ -158,29 +268,54 @@ class App extends Component {
     let node2 = this.state.powerSupplyNode2InputValue;
     
     if (node1 === node2){
-      alert('Cannot connect a node to itself.');
+      toast('Cannot connect a node to itself.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
     if (this.checkIfEdgeExists(node1, node2)){
-      alert('Component already exists between ' + node1 + ' and ' + node2 + '.');
+      toast('Component already exists between ' + node1 + ' and ' + node2 + '.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
     if (!this.checkIfEdgeConnectsNeighbors(node1, node2)){
-      alert('Nodes aren\'t adjacent.');
+      toast('Nodes aren\'t adjacent.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
     if(!(voltsValue)){
-      alert('Fields must not be empty');
+      toast('Fields must not be empty.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
     if (isNaN(voltsValue)){
-      alert('Volts value must be a valid integer');
+      toast('Resistor value must be a valid nonzero integer.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
-    if (voltsValue === '0'){
-      alert('Volts value must not be zero');
+    if (parseInt(voltsValue, 10) <= 0 ){
+      toast('Resistor value must be a valid nonzero integer.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
+
     let curEdges = this.state.edges;
     curEdges.push('P' + node1 + 'and' + node2 + 'v' + voltsValue)
     this.setState({
@@ -189,7 +324,14 @@ class App extends Component {
       powerSupplyNode1InputValue: 0,
       powerSupplyNode2InputValue: 0
     })
-    alert('Added component.');
+
+    toast('Added component.', {
+      position: toast.POSITION.BOTTOM_LEFT,
+      hideProgressBar: true
+    });
+    this.setState({
+      powerDrawer: false
+    })
     return;
   }
 
@@ -197,20 +339,32 @@ class App extends Component {
     e.preventDefault();
     let node1 = this.state.wireNode1InputValue;
     let node2 = this.state.wireNode2InputValue;
+
+    
     if (node1 === node2){
-      alert('Cannot connect a node to itself.');
+      toast('Cannot connect a node to itself.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
-
     if (this.checkIfEdgeExists(node1, node2)){
-      alert('Component already exists between ' + node1 + ' and ' + node2 + '.');
+      toast('Component already exists between ' + node1 + ' and ' + node2 + '.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
     if (!this.checkIfEdgeConnectsNeighbors(node1, node2)){
-      alert('Nodes aren\'t adjacent.');
+      toast('Nodes aren\'t adjacent.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
-  
     let curEdges = this.state.edges;
     curEdges.push('W' + node1 + 'and' + node2 + 'v')
     this.setState({
@@ -218,7 +372,13 @@ class App extends Component {
       wireNode1InputValue: 0,
       wireNode2InputValue: 0
     })
-    alert('Added component.');
+    toast('Added component.', {
+      position: toast.POSITION.BOTTOM_LEFT,
+      hideProgressBar: true
+    });
+    this.setState({
+      wireDrawer: false
+    })
     return;
   }
 
@@ -233,7 +393,11 @@ class App extends Component {
       curEdges.splice(curEdges.indexOf(edgeToDelete), 1);
     }
     else{
-      alert('No component exists between ' + node1 + ' and ' + node2 + '.');
+      toast('No component exists between ' + node1 + ' and ' + node2 + '.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       return;
     }
     this.setState({
@@ -241,7 +405,13 @@ class App extends Component {
       deleteNode1InputValue: 0,
       deleteNode2InputValue: 0
     })
-    alert('Deleted component.');
+    toast('Deleted component.', {
+      position: toast.POSITION.BOTTOM_LEFT,
+      hideProgressBar: true
+    });
+    this.setState({
+      deleteDrawer: false
+    })
     return;
   }
 
@@ -265,7 +435,19 @@ class App extends Component {
 
   simulate(){
     if(this.state.edges.length === 0){
-      alert('Components must be added to simulate.');
+      toast('Components must be added to simulate.', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
+      return;
+    }
+    if(this.state.simulating){
+      this.setState({ 
+        simulating: false,
+        ableToStopSimulating: false,
+        simulationResults: ''
+      });
       return;
     }
     this.setState({
@@ -279,7 +461,11 @@ class App extends Component {
         simulationResults: response.data
       });
     }).catch(error => {
-      alert('Error simulating');
+      toast('Error simulating: ' + error.toString(), {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "red"
+      });
       this.setState({
         simulating: false
       })
@@ -287,55 +473,34 @@ class App extends Component {
     
   }
 
-  stopSimulate(){
-    this.setState({ 
-      simulating: false,
-      ableToStopSimulating: false,
-      simulationResults: ''
-    })
-  }
+
 
   render() {
     let edges = this.state.edges;
     let simulationResults = this.state.simulationResults;
     return (
       <div className="App">
-        <img src={title} alt="Circuit Simulator"/>
-        <div id="inputContainer">
-            <form onSubmit={this.handleNodeSubmit} id="nodeForm">
-              <select name="rowlist" form="nodeForm" value={this.state.rowsOfNodesInput} onChange={this.handleRowChange} disabled={this.state.nodesCreated}>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-              </select>
-              <select name="collist" form="nodeForm" value={this.state.colOfNodesInput} onChange={this.handleColChange} disabled={this.state.nodesCreated}>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-              </select>
-              <input className="button" id="AddInput" type="submit" value="create nodes" disabled={this.state.nodesCreated}/>
-            </form>
-            <hr/>
-              <NodeInput hasValue={true} nodesNumber={this.state.numberOfNodes} handleSubmit={this.handleResistorSubmit} type="create resistor" placeholder="Ω" Node1InputValue={this.state.resistorNode1InputValue} Node2InputValue={this.state.resistorNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handleResistorNode1InputChange} handleNode2InputChange={this.handleResistorNode2InputChange} InputValue={this.state.resistorInputValue} handleInputChange={this.handleResistorInputChange}/>
-              <NodeInput hasValue={true} nodesNumber={this.state.numberOfNodes} handleSubmit={this.handlePowerSupplySubmit} type="create power supply" placeholder="V" Node1InputValue={this.state.powerSupplyNode1InputValue} Node2InputValue={this.state.powerSupplyNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handlePowerSupplyNode1InputChange} handleNode2InputChange={this.handlePowerSupplyNode2InputChange} InputValue={this.state.powerSupplyInputValue} handleInputChange={this.handlePowerSupplyInputChange}/>
-              <NodeInput hasValue={false} nodesNumber={this.state.numberOfNodes} handleSubmit={this.handleWireSubmit} type="create wire" Node1InputValue={this.state.wireNode1InputValue} Node2InputValue={this.state.wireNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handleWireNode1InputChange} handleNode2InputChange={this.handleWireNode2InputChange}/>
-            <hr/>
-              <NodeInput hasValue={false} nodesNumber={this.state.numberOfNodes} handleSubmit={this.handleDeleteEdgesSubmit} type="delete component" Node1InputValue={this.state.deleteNode1InputValue} Node2InputValue={this.state.deleteNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handleDeleteNode1InputChange} handleNode2InputChange={this.handleDeleteNode2InputChange}/>
-            <hr/>
-              <button type="button" onClick={this.simulate} disabled={!this.state.nodesCreated || this.state.simulating}>simulate</button>
-              <button type="button" onClick={this.stopSimulate} disabled={!this.state.ableToStopSimulating}>stop simulate</button>   
-            <hr/>
+        <div className="header" >
+          <img src={title} alt="Circuit Simulator"/>
+          <div className="header" id="inputContainer">
+            <img className="addHoverCursor" src={resistor} height="75" width="75" onClick={this.openResistorTab} alt="Add resistor"/>
+            <img className="addHoverCursor" src={power} height="75" width="75" onClick={this.openPowerTab} alt="Add Power Supply"/>
+            <img className="addHoverCursor" src={wire} height="75" width="75" onClick={this.openWireTab} alt="Add Wire"/>
+            <img className="addHoverCursor" src={sim} height="75" width="75" onClick={this.simulate} alt="Simulate Circuit" style={this.state.simulating && {"opacity":".5"} || {}}/>
+            <img className="addHoverCursor" src={erase} height="60" width="60" onClick={this.openDeleteTab} alt="Add Delete" id="raiseme"/>
+            <NodeInput change={this.resistorChange} open={this.state.resistorDrawer} hasValue={true} nodesNumber={this.state.numberOfNodes} handleSubmit={this.handleResistorSubmit} type="create resistor" placeholder="Ω" Node1InputValue={this.state.resistorNode1InputValue} Node2InputValue={this.state.resistorNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handleResistorNode1InputChange} handleNode2InputChange={this.handleResistorNode2InputChange} InputValue={this.state.resistorInputValue} handleInputChange={this.handleResistorInputChange}/>
+            <NodeInput change={this.powerChange} open={this.state.powerDrawer} hasValue={true} nodesNumber={this.state.numberOfNodes} handleSubmit={this.handlePowerSupplySubmit} type="create power supply" placeholder="V" Node1InputValue={this.state.powerSupplyNode1InputValue} Node2InputValue={this.state.powerSupplyNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handlePowerSupplyNode1InputChange} handleNode2InputChange={this.handlePowerSupplyNode2InputChange} InputValue={this.state.powerSupplyInputValue} handleInputChange={this.handlePowerSupplyInputChange}/>
+            <NodeInput change={this.wireChange} open={this.state.wireDrawer} hasValue={false} nodesNumber={this.state.numberOfNodes} handleSubmit={this.handleWireSubmit} type="create wire" Node1InputValue={this.state.wireNode1InputValue} Node2InputValue={this.state.wireNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handleWireNode1InputChange} handleNode2InputChange={this.handleWireNode2InputChange}/>
+            <NodeInput change={this.deleteChange}open={this.state.deleteDrawer} hasValue={false} nodesNumber={this.state.numberOfNodes} handleSubmit={this.handleDeleteEdgesSubmit} type="delete component" Node1InputValue={this.state.deleteNode1InputValue} Node2InputValue={this.state.deleteNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handleDeleteNode1InputChange} handleNode2InputChange={this.handleDeleteNode2InputChange}/>
+          </div>
         </div>
+
         <div>{edges}</div>
-        <Circuit edges={this.state.edges} nodes={this.state.nodeDimensions} simulationResults={simulationResults}/>
+        <div className="main">
+          <Circuit edges={this.state.edges} nodes={this.state.nodeDimensions} simulationResults={simulationResults}/>
+        </div>
+        <br/>
+        <ToastContainer />
       </div>
     );
   }

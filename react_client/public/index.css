@@ -1,3 +1,98 @@
 .addHoverCursor {
     cursor: pointer;
 }
+
+.addHoverCursor:hover{
+    opacity: .8;
+}
+
+.red {
+    color: rgba(245, 60, 60, 0.561)
+}
+
+.header { 
+    grid-area: header; 
+    background-color: rgb(63, 63, 63);
+    grid-gap: 5px;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.main { 
+    grid-gap: 5px;
+    padding: 20px;
+    grid-area: main; 
+    background-color:rgb(228, 228, 228);
+    border-radius: 10px;
+}
+
+.App {
+  grid-column-gap: 3px;
+  grid-row-gap: 3px;    
+  display: grid;
+  grid-gap: 2%;
+  grid-template-areas:
+    'header'
+    'main'
+    'main';
+}
+
+Drawer{
+    background-color: white;
+}
+
+body{
+    background-color: lightgray;
+}
+
+#raiseme{
+    position: relative;
+    bottom: 7px;
+}
+
+div{
+    display: inline-block
+}
+
+img {
+    padding: 10px;
+}
+
+.tabInput input[type=submit]{
+    overflow: auto;
+    margin: 10px;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 16px;
+    background-color: rgb(33, 62, 230);
+    color: #FFF;
+    border: 2px solid rgb(33, 62, 230);
+    width: 200px;
+}
+
+
+.tabInput input[type=text]{
+    overflow: auto;
+    margin: 10px;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid rgb(33, 62, 230);
+    width: 175px;
+}
+
+
+.nodeInput {
+    overflow: auto;
+    margin: 10px;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 2px solid rgb(33, 62, 230);
+    width: 197px;
+}
+
+
+Drawer{
+    border-radius: 5px;
+}
