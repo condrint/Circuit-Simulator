@@ -8,9 +8,9 @@ app = Flask(__name__, static_folder='templates')
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def router(path):
     if 'api' in path:
-        print(request.json, file=sys.stdout)
+        #print(request.json, file=sys.stdout)
         result = simulate(request.json['edges'], request.json['nodes'])
-        print(result, file=sys.stdout)
+        #print(result, file=sys.stdout)
 
         return jsonify(result)
 

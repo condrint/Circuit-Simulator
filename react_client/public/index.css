@@ -2,6 +2,10 @@
     cursor: pointer;
 }
 
+.addSelect{
+    color:blue;
+}
+
 .addHoverCursor:hover{
     opacity: .8;
 }
@@ -36,6 +40,22 @@
     'main'
     'main';
 }
+
+.answerTypeIndicator {
+    position: absolute;
+    font-size: 10pt;
+    background-color: rgba(255, 128, 0, 0.3);
+    color: rgb(200, 0, 0);
+    padding: 0.2em 0.5em 0.1em;
+    border: solid rgb(200, 0, 0) 1px;
+    fill-opacity: 0.2;
+    display: none;
+    z-index: -1;
+  }
+  
+  .showing {
+    display: block;
+  }
 
 Drawer{
     background-color: white;

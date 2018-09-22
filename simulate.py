@@ -5,7 +5,6 @@ def simulate(edges, nodeCount):
     circuit = Circuit()
     nodes = [Node(i) for i in range(nodeCount)]
     edgesToAdd = []
-
     for edge in edges:
         #string manipulation to read in data from react
         type_node0, node1_value = edge.split('and')
@@ -28,18 +27,18 @@ def simulate(edges, nodeCount):
     for edge in edgesToAdd:
         circuit.addEdge(edge)
 
-    #try:
-    voltage, current = circuit.nodalAnalysis()
-    circuit = '' #dereference object
-    #convert everything to strings and numbers for internet transport
-    voltage = {str(node.getID()): str(voltage[node]) for node in voltage.keys()}
-    current = {str(component.getFirstNode().getID()) + 'and' + str(component.getSecondNode().getID()): str(current[component]) for component in current.keys()}
-    
-    return {**voltage, **current}
-    #except:
-        #print('error simulating circuit below')
-        #print(circuit)
-        #return {}
+    try:
+        voltage, current = circuit.nodalAnalysis()
+        circuit = '' #dereference object
+        #convert everything to strings and numbers for internet transport
+        voltage = {str(node.getID()): str(voltage[node]) for node in voltage.keys()}
+        current = {str(component.getFirstNode().getID()) + 'and' + str(component.getSecondNode().getID()): str(current[component]) for component in current.keys()}
+
+        return {**voltage, **current}
+    except:
+        print('error simulating circuit below')
+        print(circuit)
+        return {}
 
         
         

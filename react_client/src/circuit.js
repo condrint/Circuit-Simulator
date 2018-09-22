@@ -6,29 +6,6 @@ class Circuit extends Component{
     
     }
     render() {
-        //rows and columns
-        //total trs (rows) = rows + (rows - 1) and same for td and columns
-
-        //make data structure before hand and iterate over it creating rows/columns
-
-        //values will be \t\t\t\n\t *DOT OR EDGE TYPE* \t\n\t\t\t
-
-        //algo for making shit
-
-        //1. place nodes
-        //  a. gonna create an array of arrays
-        //  b. outside loop is rows + rows - 1
-        //  c. if i % 2 == 1, make row blank
-        //  d. otherwise inside loops is col + col - 1 and place nodes every other spot using %2
-
-
-        //2. place edges
-        //  a. node 1 and node2
-        //  b. if node1 and node2 are in the same row (node1 / col == node2 / col)
-        //      -place at [ col, row (node/col)] find col by (node1%col + node2%col)
-        //  c. ok so were in the same column them (placement is not legal otherwise)
-        //      -find column by %col
-        //      -find both rows and place in [col, row in between (add up and div by 2)] node/col * 2 to find row
         let edges = this.props.edges;
         let nodes = this.props.nodes;
         let rows = 0;
@@ -49,12 +26,14 @@ class Circuit extends Component{
                     if (j % 2 == 0){
                         let nodalVoltage = '';
                         let nodeNumber = ((i / 2 * cols) + (j % (cols * 2 - 1)) / 2).toString();
+                        let hadSim = false;
 
                         //if nodal voltage exists, render it as title at node
                         if (simResults.hasOwnProperty(nodeNumber.toString())){
                             nodalVoltage = ', ' + parseFloat(simResults[nodeNumber.toString()], 10).toPrecision(4).toString() + 'V'
+                            hadSim = true;
                         }
-                        newRow.push([nodeSpot, 'node' + nodeNumber + nodalVoltage]);
+                        newRow.push([nodeSpot, 'node' + nodeNumber + nodalVoltage, hadSim]);
                     }
                     else{
                         newRow.push([blankSpot, 'Empty']);
@@ -80,6 +59,7 @@ class Circuit extends Component{
                 let node0 = parseInt(splitEdge[0].slice(1), 10);
                 let node1 = parseInt(node1_value[0], 10);
                 let value = parseInt(node1_value[1], 10);
+                let hadSim = false;
 
                 let rowToPlaceEdge = 0;
                 let colToPlaceEdge = 0;
@@ -117,8 +97,9 @@ class Circuit extends Component{
                     let nodes = node0.toString() + 'and' + node1.toString();
                     if (simResults.hasOwnProperty(nodes)){
                         spotValue += '\n' + parseFloat(simResults[nodes], 10).toPrecision(4).toString() + 'A'
+                        hadSim = true;
                     }
-                    circuit[rowToPlaceEdge][colToPlaceEdge] = [spot, spotValue];
+                    circuit[rowToPlaceEdge][colToPlaceEdge] = [spot, spotValue, hadSim];
                     
                 }
                 else{
@@ -151,9 +132,10 @@ class Circuit extends Component{
                     let nodes = node0.toString() + 'and' + node1.toString();
                     if (simResults.hasOwnProperty(nodes)){
                         spotValue += '\n' + parseFloat(simResults[nodes], 10).toPrecision(4).toString() + 'A'
+                        hadSim = true;
                     }
                     
-                    circuit[rowToPlaceEdge][colToPlaceEdge] = [spot, spotValue];
+                    circuit[rowToPlaceEdge][colToPlaceEdge] = [spot, spotValue, hadSim];
                 }
                 
             }
@@ -167,7 +149,7 @@ class Circuit extends Component{
                             {circuit && circuit.map((row, index) => 
                                 <tr key={index}>
                                     {row && row.map((data, index) => 
-                                        <td title={data[1]} key={index}><pre className={"addHoverCursor"} style={simResults && {color: 'red'} || {color: 'black'}}>{data[0]}</pre></td> //).length != 0 && "addHoverCursor" || "noEdgeExistsHere"
+                                        <td title={data[1]} key={index}><pre className={"addHoverCursor"} style={data[2] && {color: 'red'} || {color: 'black'}}>{data[0]}</pre></td> //).length != 0 && "addHoverCursor" || "noEdgeExistsHere"
                                     )}
                                 </tr>
                             )}

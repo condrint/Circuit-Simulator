@@ -35,8 +35,6 @@ class App extends Component {
       deleteNode2InputValue: '0',
 
       nodeDimensions: [4, 7],
-      //rowsOfNodesInput: '2', //default value for the drop down list
-      //colOfNodesInput: '2',
       
       edges: [],
 
@@ -49,8 +47,10 @@ class App extends Component {
       resNum: 0,
       powNum: 0,
       wireNum: 0,
-      delNum: 0
+      delNum: 0,
 
+      hover: null,
+      first: true
     }
 
     //this.handleNodeSubmit = this.handleNodeSubmit.bind(this);
@@ -68,8 +68,6 @@ class App extends Component {
     this.handleWireNode2InputChange = this.handleWireNode2InputChange.bind(this);
     this.handleDeleteNode1InputChange = this.handleDeleteNode1InputChange.bind(this);
     this.handleDeleteNode2InputChange = this.handleDeleteNode2InputChange.bind(this);
-    //this.handleRowChange = this.handleRowChange.bind(this);
-    //this.handleColChange = this.handleColChange.bind(this);
     this.simulate = this.simulate.bind(this);
     this.checkIfEdgeExists = this.checkIfEdgeExists.bind(this);
     this.checkIfEdgeConnectsNeighbors = this.checkIfEdgeConnectsNeighbors.bind(this);
@@ -81,8 +79,14 @@ class App extends Component {
     this.wireChange = this.wireChange.bind(this);
     this.powerChange = this.powerChange.bind(this);
     this.deleteChange = this.deleteChange.bind(this);
+    this.hoverNode = this.hoverNode.bind(this);
   }
-
+  hoverNode(val){
+    this.setState({
+      hover:val
+    })
+    console.log(val);
+  }
   resistorChange(val){
     this.setState({
       resistorDrawer: val
@@ -161,7 +165,6 @@ class App extends Component {
   checkIfEdgeConnectsNeighbors(node1, node2){
     node1 = parseInt(node1, 10);
     node2 = parseInt(node2, 10);
-    let rows = parseInt(this.state.nodeDimensions[0], 10);
     let cols = parseInt(this.state.nodeDimensions[1], 10);
     if(Math.floor(node1 / cols) === Math.floor(node2 / cols)){
       //same row
@@ -460,6 +463,11 @@ class App extends Component {
         ableToStopSimulating: true,
         simulationResults: response.data
       });
+      toast('Hover over a node to see the results!', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true,
+        bodyClassName: "green"
+      });
     }).catch(error => {
       toast('Error simulating: ' + error.toString(), {
         position: toast.POSITION.BOTTOM_LEFT,
@@ -473,11 +481,17 @@ class App extends Component {
     
   }
 
-
+  
 
   render() {
-    let edges = this.state.edges;
     let simulationResults = this.state.simulationResults;
+    if(this.state.first){
+      this.setState({first:false});
+      toast('Hover over a node to see which one it is!', {
+        position: toast.POSITION.BOTTOM_LEFT,
+        hideProgressBar: true
+      });
+    }
     return (
       <div className="App">
         <div className="header" >
@@ -494,13 +508,12 @@ class App extends Component {
             <NodeInput change={this.deleteChange}open={this.state.deleteDrawer} hasValue={false} nodesNumber={this.state.numberOfNodes} handleSubmit={this.handleDeleteEdgesSubmit} type="delete component" Node1InputValue={this.state.deleteNode1InputValue} Node2InputValue={this.state.deleteNode2InputValue} nodesCreated={this.state.nodesCreated} simulating={this.state.simulating} handleNode1InputChange={this.handleDeleteNode1InputChange} handleNode2InputChange={this.handleDeleteNode2InputChange}/>
           </div>
         </div>
-
-        <div>{edges}</div>
         <div className="main">
           <Circuit edges={this.state.edges} nodes={this.state.nodeDimensions} simulationResults={simulationResults}/>
         </div>
         <br/>
         <ToastContainer />
+        <br/>
       </div>
     );
   }
