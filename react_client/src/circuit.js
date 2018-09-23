@@ -16,7 +16,7 @@ class Circuit extends Component{
         }
         let circuit = [];
         const blankSpot = '\t\n\t\n\t'
-        const nodeSpot = '\t\n  o  \n\t'
+        const nodeSpot = '\t\n  o  \n'
         let simResults = this.props.simulationResults;
         //create blank circuit and place nodes
         for(let i = 0; i < 2 * rows - 1; i++){
@@ -36,13 +36,13 @@ class Circuit extends Component{
                         newRow.push([nodeSpot, 'node' + nodeNumber + nodalVoltage, hadSim]);
                     }
                     else{
-                        newRow.push([blankSpot, 'Empty']);
+                        newRow.push([blankSpot, '']);
                     }
                 }
             }
             else{
                 for(let j = 0; j < 2 * cols - 1; j++){
-                    newRow.push([blankSpot, 'Empty']);
+                    newRow.push([blankSpot, '']);
                 }
             } //blank spot for resistance/voltage for resistors/power supplies
             circuit.push(newRow);
@@ -71,15 +71,15 @@ class Circuit extends Component{
                     colToPlaceEdge = (node0 % cols) + (node1 % cols);
                     
                    
-                    let spot = '\t\n----' + nodeType + '----\n\t';
+                    let spot = '\t\n----' + nodeType + '----\n';
                     
                     //node0 is positive terminal 
                     if(nodeType == 'P'){
                         if (node0 > node1){
-                            spot = '-\t+\n----' + nodeType + '----\n\t';
+                            spot = '-\t+\n----' + nodeType + '----\n';
                         }
                         else{
-                            spot = '+\t-\n----' + nodeType + '----\n\t';
+                            spot = '+\t-\n----' + nodeType + '----\n';
                         }
                     }
                     
@@ -112,10 +112,10 @@ class Circuit extends Component{
                     //node0 is positive terminal 
                     if(nodeType == 'P'){
                         if (node0 > node1){
-                            spot = '  | -\n  ' + nodeType + '  \n  | +';
+                            spot = ' -| \n  ' + nodeType + '  \n +| ';
                         }
                         else{
-                            spot = '  | +\n  ' + nodeType + '  \n  | -';
+                            spot = ' +| \n  ' + nodeType + '  \n -| ';
                         }
                     }
                     
@@ -149,7 +149,7 @@ class Circuit extends Component{
                             {circuit && circuit.map((row, index) => 
                                 <tr key={index}>
                                     {row && row.map((data, index) => 
-                                        <td title={data[1]} key={index}><pre className={"addHoverCursor"} style={data[2] && {color: 'red'} || {color: 'black'}}>{data[0]}</pre></td> //).length != 0 && "addHoverCursor" || "noEdgeExistsHere"
+                                        <td title={data[1]} key={index}><pre className={"addHoverCursor"} style={data[2] && {color: 'red'} || {color: 'black'}}>{data[0] + (data[1] || '\n')}</pre></td> //).length != 0 && "addHoverCursor" || "noEdgeExistsHere"
                                     )}
                                 </tr>
                             )}

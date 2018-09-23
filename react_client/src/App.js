@@ -48,9 +48,6 @@ class App extends Component {
       powNum: 0,
       wireNum: 0,
       delNum: 0,
-
-      hover: null,
-      first: true
     }
 
     //this.handleNodeSubmit = this.handleNodeSubmit.bind(this);
@@ -194,8 +191,8 @@ class App extends Component {
   handleResistorSubmit(e){
     e.preventDefault();
     let resistorValue = this.state.resistorInputValue;
-    let node1 = this.state.resistorNode1InputValue;
-    let node2 = this.state.resistorNode2InputValue;
+    let node1 = this.state.resistorNode1InputValue.toString();
+    let node2 = this.state.resistorNode2InputValue.toString();
     
     if (node1 === node2){
       toast('Cannot connect a node to itself.', {
@@ -267,8 +264,8 @@ class App extends Component {
   handlePowerSupplySubmit(e){
     e.preventDefault();
     let voltsValue = this.state.powerSupplyInputValue;
-    let node1 = this.state.powerSupplyNode1InputValue;
-    let node2 = this.state.powerSupplyNode2InputValue;
+    let node1 = this.state.powerSupplyNode1InputValue.toString();
+    let node2 = this.state.powerSupplyNode2InputValue.toString();
     
     if (node1 === node2){
       toast('Cannot connect a node to itself.', {
@@ -340,8 +337,8 @@ class App extends Component {
 
   handleWireSubmit(e){
     e.preventDefault();
-    let node1 = this.state.wireNode1InputValue;
-    let node2 = this.state.wireNode2InputValue;
+    let node1 = this.state.wireNode1InputValue.toString();
+    let node2 = this.state.wireNode2InputValue.toString();
 
     
     if (node1 === node2){
@@ -387,8 +384,8 @@ class App extends Component {
 
   handleDeleteEdgesSubmit(e){
     e.preventDefault();
-    let node1 = this.state.deleteNode1InputValue;
-    let node2 = this.state.deleteNode2InputValue;
+    let node1 = this.state.deleteNode1InputValue.toString();
+    let node2 = this.state.deleteNode2InputValue.toString();
     let curEdges = [];
     let edgeToDelete = this.checkIfEdgeExists(node1, node2);
     if (edgeToDelete){
@@ -458,15 +455,15 @@ class App extends Component {
     });
     let edges = this.state.edges;
     let nodes = this.state.numberOfNodes;
+    toast('Running some Python scripts...', {
+      position: toast.POSITION.BOTTOM_LEFT,
+      hideProgressBar: true,
+      bodyClassName: "green"
+    });
     axios.post('/api/simulate', {edges, nodes}).then(response => {
       this.setState({
         ableToStopSimulating: true,
         simulationResults: response.data
-      });
-      toast('Hover over a node to see the results!', {
-        position: toast.POSITION.BOTTOM_LEFT,
-        hideProgressBar: true,
-        bodyClassName: "green"
       });
     }).catch(error => {
       toast('Error simulating: ' + error.toString(), {
@@ -485,13 +482,7 @@ class App extends Component {
 
   render() {
     let simulationResults = this.state.simulationResults;
-    if(this.state.first){
-      this.setState({first:false});
-      toast('Hover over a node to see which one it is!', {
-        position: toast.POSITION.BOTTOM_LEFT,
-        hideProgressBar: true
-      });
-    }
+ 
     return (
       <div className="App">
         <div className="header" >
