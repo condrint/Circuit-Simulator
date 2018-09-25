@@ -1,7 +1,7 @@
 # Circuit-Simulator
 React and Flask - Simulate a simple DC circuit
 
-Check it out on [Heroku](https://circuit-simulator.herokuapp.com/)
+Check it out on [Heroku](https://circuit-simulator.herokuapp.com/) - Note: it will probably take a few seconds to load, the free tier of Heroku takes the app out of memory after some time
 
 ## Usage
 * Try placing a power supply and some resistors and wires that connect from the plus to the minus sign
