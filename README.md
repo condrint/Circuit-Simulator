@@ -1,4 +1,7 @@
 # Circuit-Simulator
+
+![image of the circuit simulator web application - a circuit grid on the bottoms and icons on top to customize it](/react_client/src/icons/readmeimage.png?raw=true "Web App Picture")
+
 React and Flask - Simulate a simple DC circuit
 
 Check it out on [Heroku](https://circuit-simulator.herokuapp.com/) - Note: it will probably take a few seconds to load, the free tier of Heroku takes the app out of memory after some time
