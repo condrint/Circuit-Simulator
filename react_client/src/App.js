@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import title from './title.png';
-import resistor from './resistor.png';
-import wire from './wire.png';
-import power from './power.png';
-import erase from './erase.png';
-import sim from './sim.png';
+import title from './icons/title.png';
+import resistor from './icons/resistor.png';
+import wire from './icons/wire.png';
+import power from './icons/power.png';
+import erase from './icons/erase.png';
+import sim from './icons/sim.png';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 const axios = require('axios');
