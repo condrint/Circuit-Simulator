@@ -12,5 +12,4 @@ Check it out on [Heroku](https://circuit-simulator.herokuapp.com/) - Note: it wi
 * If you have wires connecting the positive and negative terminals of a powersupply directly you will short the battery! (and the results will be mostly meaningless)
 * Power supplies / Resistors / Wires can only be placed between horizontally or vertically connected neighbors.
 
-## Issues/Todo
-* The python scripts on the backend will break if you start making weird circuits, working on this atm 
+
